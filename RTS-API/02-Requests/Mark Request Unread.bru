@@ -1,0 +1,31 @@
+meta {
+  name: Mark Request Unread
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/unread
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request marked as unread | ID:", bru.getEnvVar("requestId"));
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Mark Request Unread
+
+  Sets `seen = false` on the request row.
+  Triggered by right-clicking a request row in the frontend table.
+  Makes the row appear highlighted (blue) again to draw attention.
+}

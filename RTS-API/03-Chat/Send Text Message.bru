@@ -1,0 +1,41 @@
+meta {
+  name: Send Text Message
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/requests/{{requestId}}/chat
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "type": "message",
+    "text": "Hello, I wanted to follow up on this request. Any updates on the timeline?"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    console.log("✅ Message sent | ID:", res.body.id, "| Time:", res.body.time);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden:", res.body.error, "— ticket may be closed, or Admin cannot chat");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Send Text Message
+
+  Sends a plain text chat message. Works for all roles except Admin.
+  Returns **403** if the ticket is already closed.
+
+  The request's `seen` flag is set to `false` so other users notice new activity.
+}

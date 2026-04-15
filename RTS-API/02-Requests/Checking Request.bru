@@ -1,0 +1,38 @@
+meta {
+  name: Checking Request
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Checking",
+    "comment": "Under review. Need to verify the technical specifications before approving."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Status set to Checking");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Checking Request
+
+  Sets the status to `Checking` — used when the approver needs more time or information.
+  Works for RM, HOD, and DeptHOD.
+  An approval card (type=approval, status=Checking) is auto-logged in chat.
+}

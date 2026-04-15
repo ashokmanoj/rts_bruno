@@ -1,0 +1,63 @@
+meta {
+  name: Get All Requests
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const count = res.body.length;
+    console.log("✅ Got", count, "request(s)");
+    if (count > 0) {
+      const first = res.body[0];
+      bru.setEnvVar("requestId", String(first.id));
+      console.log("🔖 requestId saved:", first.id, "| Purpose:", first.purpose, "| Status:", first.assignedStatus);
+    }
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — run Login first");
+  }
+}
+
+docs {
+  # Get All Requests
+
+  Returns requests filtered by the logged-in user's role:
+
+  | Role      | Sees                                              |
+  |-----------|---------------------------------------------------|
+  | Requestor | Only their own submitted requests                 |
+  | RM        | All requests from their department + their own    |
+  | HOD       | All requests from their department + their own    |
+  | DeptHOD   | All requests assigned to their department + own   |
+  | Admin     | All requests in the system                        |
+
+  First request ID is auto-saved to `{{requestId}}`.
+
+  ## Response fields
+  ```json
+  {
+    "id": 1,
+    "empId": "A-1007",
+    "name": "Santhosh S M",
+    "dept": "Academic",
+    "assignedDept": "Software",
+    "purpose": "New Laptop Request",
+    "rmStatus": "Approved",
+    "hodStatus": "--",
+    "deptHodStatus": "--",
+    "isClosed": false,
+    "forwarded": false,
+    "seen": true
+  }
+  ```
+}

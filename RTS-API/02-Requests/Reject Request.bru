@@ -1,0 +1,38 @@
+meta {
+  name: Reject Request
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Rejected",
+    "comment": "Budget constraints for this quarter. Please resubmit in the next cycle."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request rejected by", res.body.rmStatus !== "--" ? "RM" : res.body.hodStatus !== "--" ? "HOD" : "DeptHOD");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Reject Request
+
+  Works for **RM (Step 1), HOD (Step 2), or DeptHOD (Step 3)**.
+  The backend sets the correct status field based on the logged-in user's role.
+  An rejection card is auto-logged in chat.
+}

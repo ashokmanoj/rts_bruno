@@ -1,0 +1,41 @@
+meta {
+  name: Send Voice Message
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/requests/{{requestId}}/chat
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  type: voice
+  duration: 0:12
+  file: @file()
+}
+
+docs {
+  # Send Voice Message
+
+  Upload a voice recording as a chat message.
+
+  ## How to use in Bruno
+  1. Change the `file` field type from **Text** to **File**
+  2. Select a `.webm`, `.mp3`, `.wav`, or `.ogg` audio file
+
+  ## Fields
+  | Field    | Required | Description                          |
+  |----------|----------|--------------------------------------|
+  | type     | yes      | Must be `"voice"`                    |
+  | file     | yes      | The audio file                       |
+  | duration | no       | Duration string like `"0:12"` or `"1:05"` |
+
+  Returns a `voiceUrl` for audio playback in the frontend.
+  Returns **403** if the ticket is closed.
+}

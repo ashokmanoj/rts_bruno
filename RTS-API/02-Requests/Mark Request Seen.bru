@@ -1,0 +1,32 @@
+meta {
+  name: Mark Request Seen
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/seen
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request marked as seen | ID:", bru.getEnvVar("requestId"));
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Mark Request Seen
+
+  Sets `seen = true` on the request row.
+  Called automatically when the user opens the Details modal in the frontend.
+
+  Used to clear the blue "unread" highlight on the request row.
+}

@@ -1,0 +1,56 @@
+meta {
+  name: Create Request
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/requests
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  purpose: New Laptop Request
+  assignedDept: Software
+  description: My current laptop is 5 years old and unable to run required software efficiently.
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("requestId", String(res.body.id));
+    console.log("✅ Request created | ID:", res.body.id);
+    console.log("   Requestor dept:", res.body.dept, "| Assigned to:", res.body.assignedDept);
+    console.log("   isOwnRequest:", res.body.isOwnRequest);
+  } else {
+    console.log("❌ Failed:", res.body.error);
+  }
+}
+
+docs {
+  # Create Request
+
+  Creates a new support request.
+
+  ## Key field change (was `dept`, now `assignedDept`)
+  - `dept` is set AUTOMATICALLY by the backend from the logged-in user's
+    profile. You never send it. This ensures the requestor's dept is always correct.
+  - `assignedDept` = which department should handle this request.
+
+  ## Fields
+  | Field        | Required | Description                                    |
+  |--------------|----------|------------------------------------------------|
+  | purpose      | YES      | Short title for the request                    |
+  | assignedDept | no       | Which dept handles it (defaults to own dept)   |
+  | description  | no       | Detailed description                           |
+  | file         | no       | Attachment up to 10 MB                         |
+
+  ## Response
+  - `dept`         — requestor's real department (from user profile in DB)
+  - `assignedDept` — which dept is handling this request
+  - `isOwnRequest` — always true for the person who just created it
+}

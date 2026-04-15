@@ -1,0 +1,45 @@
+meta {
+  name: Send File Attachment
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/requests/{{requestId}}/chat
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  type: file
+  text: Please see the attached document for reference.
+  file: @file()
+}
+
+docs {
+  # Send File Attachment
+
+  Upload a file as a chat message.
+
+  ## How to use in Bruno
+  1. In the multipart form editor, find the `file` field
+  2. Change its type from **Text** to **File**
+  3. Click the file icon and select your file
+
+  ## Fields
+  | Field | Required | Description                                      |
+  |-------|----------|--------------------------------------------------|
+  | type  | yes      | Must be `"file"`                                 |
+  | file  | yes      | The file to upload (max 10 MB)                   |
+  | text  | no       | Optional caption shown below the file/image      |
+
+  ## Supported formats
+  Images (jpg, png, gif, webp), PDFs, Word docs, Excel files, ZIPs, etc.
+  If the file is an image, `isImage: true` is returned and the frontend renders a preview.
+
+  Returns **403** if the ticket is closed.
+}

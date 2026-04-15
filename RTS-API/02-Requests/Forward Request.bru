@@ -1,0 +1,49 @@
+meta {
+  name: Forward Request
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Forwarded",
+    "comment": "Forwarding to Software department for technical assessment.",
+    "newDept": "Software"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request forwarded to:", res.body.assignedDept);
+    console.log("   Forwarded by:", res.body.forwardedBy);
+  } else if (res.status === 400) {
+    console.log("❌", res.body.error, "— make sure newDept is set");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Forward Request
+
+  Can be used by **RM, HOD, or DeptHOD**.
+  Sets `forwarded = true` and changes `assigned_dept` to `newDept`.
+  A forwarding card is auto-logged in chat.
+
+  **`newDept` is required** when decision is `Forwarded`.
+
+  ## Valid department names
+  Academic, Accounts, Admin, Animation, Broadcasting, Business Development,
+  Corporate Communications, Documantation, Govt. Relations, HR, Management,
+  Marketing, Operation, Purchase, Software, Store, System admin, Technical Support
+}

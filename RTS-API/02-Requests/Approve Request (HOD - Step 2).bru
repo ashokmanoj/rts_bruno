@@ -1,0 +1,49 @@
+meta {
+  name: Approve Request (HOD - Step 2)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Approved",
+    "comment": "Approved by HOD. Forwarding to Dept HOD for final sign-off."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ HOD decision recorded:", res.body.hodStatus, "on", res.body.hodDate);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as HOD first");
+  } else {
+    console.log("❌ Error:", res.body.error);
+  }
+}
+
+docs {
+  # Approve Request — Step 2 (HOD)
+
+  **Login as a HOD** before calling this endpoint.
+  Sets `hod_status` on the request and auto-logs an approval card in chat.
+
+  ## Test HOD accounts
+  | Email                           | Password       | Dept              |
+  |---------------------------------|----------------|-------------------|
+  | bhatraveendrabeegar@gmail.com   | Raveendra@123  | Academic          |
+  | pruthvi2k7@gmail.com            | Pruthvi@123    | Animation         |
+  | manjumsw75@gmail.com            | Manjunatha@123 | Operation         |
+  | v.nithish@gmail.com             | Nithish@123    | Software          |
+  | sghegde2010@gmail.com           | Sudhakar@123   | HR                |
+  | pavantallam03@gmail.com         | Pavan@123      | Accounts          |
+}

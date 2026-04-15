@@ -1,0 +1,62 @@
+meta {
+  name: Close Ticket (DeptHOD)
+  type: http
+  seq: 11
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/close
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  note: Issue has been fully resolved. All requirements fulfilled and delivery confirmed.
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Ticket closed | Status:", res.body.assignedStatus);
+    console.log("   Resolved by:", res.body.resolvedBy);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as DeptHOD first");
+  } else if (res.status === 409) {
+    console.log("❌ Already closed — cannot close again");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Close Ticket
+
+  **Only DeptHOD can close tickets.**
+
+  ## What it does
+  - Sets `is_closed = true`
+  - Sets `assigned_status = "DD/MM/YYYY (Closed)"`
+  - Sets `resolved_by` to the logged-in user's name
+  - Auto-logs a 🔒 system message in the chat thread
+  - After closing, no more chat messages can be sent (403)
+
+  ## Optional fields
+  | Field | Type   | Description                              |
+  |-------|--------|------------------------------------------|
+  | note  | string | Resolution note shown in the system card |
+  | file  | File   | Resolution document/photo (optional)     |
+
+  ## Error responses
+  - **403** — not logged in as DeptHOD
+  - **409** — ticket is already closed
+
+  ## Test DeptHOD accounts
+  | Email                | Password         |
+  |----------------------|------------------|
+  | software@rts.com     | Software@123     |
+  | operation@rts.com    | Operation@123    |
+  | academic@rts.com     | Academic@123     |
+}

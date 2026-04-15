@@ -1,0 +1,55 @@
+meta {
+  name: Approve Request (RM - Step 1)
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Approved",
+    "comment": "Approved by RM. Proceeding to HOD for review."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ RM decision recorded:", res.body.rmStatus, "on", res.body.rmDate);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden:", res.body.error, "— login as RM first");
+  } else {
+    console.log("❌ Error:", res.body.error);
+  }
+}
+
+docs {
+  # Approve Request — Step 1 (RM)
+
+  **Login as an RM** before calling this endpoint.
+  Sets `rm_status` on the request and auto-logs an approval card in chat.
+
+  ## Valid decisions
+  | Decision  | Effect                                     |
+  |-----------|--------------------------------------------|
+  | Approved  | Sets rm_status = Approved                  |
+  | Rejected  | Sets rm_status = Rejected                  |
+  | Checking  | Sets rm_status = Checking (needs more info)|
+  | Forwarded | Changes assigned_dept — requires newDept   |
+
+  ## Test RM accounts
+  | Email                    | Password   | Dept     |
+  |--------------------------|------------|----------|
+  | kadakkath@gmail.com      | Anil@123   | Academic |
+  | bik.haz.1989@gmail.com   | Bikash@123 | Operation|
+  | rhlsubba19@gmail.com     | Rahul@123  | Tech Sup |
+  | pvnverma77@gmail.com     | Pavan@123  | Purchase |
+}

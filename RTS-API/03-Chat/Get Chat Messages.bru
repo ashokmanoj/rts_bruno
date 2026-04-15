@@ -1,0 +1,71 @@
+meta {
+  name: Get Chat Messages
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/{{requestId}}/chat
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  requestId: 10
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Got", res.body.length, "message(s) for request", bru.getEnvVar("requestId"));
+    if (res.body.length > 0) {
+      const last = res.body[res.body.length - 1];
+      console.log("   Latest:", last.author, "|", last.type, "|", last.text?.substring(0, 60));
+    }
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Chat Messages
+  
+  Returns all messages for a request in **chronological order** (oldest first).
+  
+  ## Message types
+  | Type     | Description                                          |
+  |----------|------------------------------------------------------|
+  | message  | Plain text message                                   |
+  | file     | File or image attachment                             |
+  | voice    | Voice recording                                      |
+  | mixed    | File + text caption                                  |
+  | approval | Auto-generated card when RM/HOD/DeptHOD takes action |
+  | system   | Auto-generated card when ticket is closed            |
+  
+  ## Sample response
+  ```json
+  [
+    {
+      "id": 1,
+      "author": "Santhosh S M",
+      "role": "Requestor",
+      "type": "message",
+      "text": "Please process this urgently.",
+      "time": "10:32 am",
+      "date": "1/4/2026"
+    },
+    {
+      "id": 2,
+      "author": "Anil Kumar G",
+      "role": "RM",
+      "type": "approval",
+      "status": "Approved",
+      "purpose": "New Laptop Request",
+      "time": "11:15 am"
+    }
+  ]
+  ```
+}

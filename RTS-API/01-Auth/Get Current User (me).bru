@@ -1,0 +1,39 @@
+meta {
+  name: Get Current User (me)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const u = res.body.user;
+    console.log("✅ Token is valid");
+    console.log("👤 User:", u.name, "| Role:", u.role, "| Dept:", u.dept, "| EmpID:", u.empId);
+  } else if (res.status === 401) {
+    console.log("❌ Token expired or invalid. Run Login first.");
+  }
+}
+
+docs {
+  # Get Current User
+
+  Verifies the JWT token and returns the decoded user payload.
+  **No database call** — purely decodes the token.
+
+  Use this to confirm:
+  - Token is still valid (not expired)
+  - Correct user is logged in
+  - Role is as expected before testing role-gated endpoints
+
+  Returns 401 if token is missing or expired.
+}

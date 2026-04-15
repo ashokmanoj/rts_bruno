@@ -1,0 +1,66 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "manojha346@gmail.com",
+    "password": "Manoj@123"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("token", res.body.token);
+    console.log("✅ Token saved");
+    console.log("👤 Logged in as:", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+  } else {
+    console.log("❌ Login failed:", res.body.error);
+  }
+}
+
+docs {
+  # Login
+  
+  Returns a JWT token + user payload.
+  Token is **auto-saved** to `{{token}}` env variable — no manual copy needed.
+  
+  ## Password rules
+  - Requestor / RM / HOD → `FirstName@123`
+  - DeptHOD              → `Dept@123`   (e.g. `Software@123`)
+  - Admin                → `Admin@123`
+  
+  ## Quick test accounts per role
+  
+  | Role      | Email                           | Password          |
+  |-----------|---------------------------------|-------------------|
+  | Requestor | santhosh.sm9@gmail.com          | Santhosh@123      |
+  | Requestor | maneeshlakaji@gmail.com         | Maneesh@123       |
+  | RM        | kadakkath@gmail.com             | Anil@123          |
+  | RM        | bik.haz.1989@gmail.com          | Bikash@123        |
+  | RM        | rhlsubba19@gmail.com            | Rahul@123         |
+  | HOD       | bhatraveendrabeegar@gmail.com   | Raveendra@123     |
+  | HOD       | pruthvi2k7@gmail.com            | Pruthvi@123       |
+  | HOD       | manjumsw75@gmail.com            | Manjunatha@123    |
+  | DeptHOD   | academic@rts.com                | Academic@123      |
+  | DeptHOD   | software@rts.com                | Software@123      |
+  | DeptHOD   | operation@rts.com               | Operation@123     |
+  | DeptHOD   | animation@rts.com               | Animation@123     |
+  | DeptHOD   | accounts@rts.com                | Accounts@123      |
+  | DeptHOD   | hr@rts.com                      | Hr@123            |
+  | DeptHOD   | broadcasting@rts.com            | Broadcasting@123  |
+  | DeptHOD   | technicalsupport@rts.com        | Technicalsupport@123 |
+  | DeptHOD   | store@rts.com                   | Store@123         |
+  | DeptHOD   | purchase@rts.com                | Purchase@123      |
+  | DeptHOD   | marketing@rts.com               | Marketing@123     |
+  | DeptHOD   | management@rts.com              | Management@123    |
+  | Admin     | admin@rts.com                   | Admin@123         |
+}

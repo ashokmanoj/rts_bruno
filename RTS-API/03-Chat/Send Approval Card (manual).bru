@@ -1,0 +1,47 @@
+meta {
+  name: Send Approval Card (manual)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/requests/{{requestId}}/chat
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "type": "approval",
+    "text": "Approved the request.",
+    "status": "Approved",
+    "purpose": "New Laptop Request",
+    "changedDept": null,
+    "originalDept": "Academic"
+  }
+}
+
+docs {
+  # Send Approval Card (Manual)
+
+  ⚠️ **Normally you don't need this.**
+  The backend automatically logs an approval card in chat whenever you call
+  `PATCH /requests/:id/approval`. This endpoint is for manual/custom approval cards.
+
+  ## Valid status values
+  `Approved`, `Rejected`, `Checking`, `Forwarded`
+
+  ## Fields
+  | Field       | Description                                          |
+  |-------------|------------------------------------------------------|
+  | type        | Must be `"approval"`                                 |
+  | status      | One of the valid decision values                     |
+  | text        | Optional comment shown on the card                   |
+  | purpose     | Request title (shown on card)                        |
+  | changedDept | New dept if forwarded (null otherwise)               |
+  | originalDept| Original dept before forwarding                     |
+}
