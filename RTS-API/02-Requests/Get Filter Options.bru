@@ -1,0 +1,30 @@
+meta {
+  name: Get Filter Options
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/requests/filters
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Filter Options
+
+  Returns unique names, departments, and assigned departments available for the logged-in user to filter by.
+
+  ## Response
+  ```json
+  {
+    "names": ["John Doe", "Jane Smith"],
+    "depts": ["Academic", "Admin"],
+    "assignedDepts": ["Software", "IT"]
+  }
+  ```
+}

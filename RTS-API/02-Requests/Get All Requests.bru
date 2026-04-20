@@ -5,9 +5,31 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/requests
+  url: {{baseUrl}}/requests?page=1&limit=50
   body: none
   auth: bearer
+}
+query {
+  page: 1
+  limit: 50
+  ~status: open
+  ~status: closed
+  ~status: all
+  ~assignedStatus: Open
+  ~assignedStatus: Checking
+  ~assignedStatus: Closed
+  ~assignedStatus: all
+  ~search: laptop
+  ~name: Santhosh
+  ~name: all
+  ~dept: Academic
+  ~dept: all
+  ~assignedDept: Software
+  ~assignedDept: all
+  ~type: sent
+  ~type: received
+  ~type: all
+  ~date: 2026-04-18
 }
 
 auth:bearer {
@@ -16,12 +38,13 @@ auth:bearer {
 
 script:post-response {
   if (res.status === 200) {
-    const count = res.body.length;
-    console.log("✅ Got", count, "request(s)");
+    const requests = res.body.data;
+    const count = requests.length;
+    console.log("✅ Got", count, "request(s) on this page");
     if (count > 0) {
-      const first = res.body[0];
+      const first = requests[0];
       bru.setEnvVar("requestId", String(first.id));
-      console.log("🔖 requestId saved:", first.id, "| Purpose:", first.purpose, "| Status:", first.assignedStatus);
+      console.log("🔖 requestId saved:", first.id, "| Purpose:", first.purpose, "| Ticket Status:", first.status, "| Assigned Status:", first.assignedStatus);
     }
   } else if (res.status === 401) {
     console.log("❌ Unauthorized — run Login first");
@@ -31,33 +54,41 @@ script:post-response {
 docs {
   # Get All Requests
 
-  Returns requests filtered by the logged-in user's role:
+  Returns requests filtered by the logged-in user's role and provided filters.
 
-  | Role      | Sees                                              |
-  |-----------|---------------------------------------------------|
-  | Requestor | Only their own submitted requests                 |
-  | RM        | All requests from their department + their own    |
-  | HOD       | All requests from their department + their own    |
-  | DeptHOD   | All requests assigned to their department + own   |
-  | Admin     | All requests in the system                        |
+  ## Filters
+  - `status`: Ticket lifecycle status
+    - `open`: where `resolvedDate` is null (Ticket is still active)
+    - `closed`: where `resolvedDate` is NOT null (Ticket is resolved)
+    - `all`: Show both open and closed tickets
+  - `assignedStatus`: The specific status in the assigned department
+    - `Open`: Just created
+    - `Checking`: Being looked at by a team member
+    - `Closed`: Resolved and closed
+    - `all`: Show all assigned statuses
+  - `search`: Keyword search (purpose, description, empId, name)
+  - `name`: Filter by requestor name (or `all`)
+  - `dept`: Filter by "from" department (Requested Department) (or `all`)
+  - `assignedDept`: Filter by "to" department (Assigned Department) (or `all`)
+  - `type`: 
+    - `sent`: I am the owner of the request
+    - `received`: Assigned to my dept, but NOT owned by me
+    - `all`: Show both sent and received
+  - `date`: Filter by creation date (YYYY-MM-DD)
 
-  First request ID is auto-saved to `{{requestId}}`.
-
-  ## Response fields
+  ## Pagination
+  Response is now paginated:
   ```json
   {
-    "id": 1,
-    "empId": "A-1007",
-    "name": "Santhosh S M",
-    "dept": "Academic",
-    "assignedDept": "Software",
-    "purpose": "New Laptop Request",
-    "rmStatus": "Approved",
-    "hodStatus": "--",
-    "deptHodStatus": "--",
-    "isClosed": false,
-    "forwarded": false,
-    "seen": true
+    "data": [...],
+    "pagination": {
+      "total": 100,
+      "page": 1,
+      "limit": 50,
+      "totalPages": 2,
+      "hasNext": true,
+      "hasPrev": false
+    }
   }
   ```
 }
