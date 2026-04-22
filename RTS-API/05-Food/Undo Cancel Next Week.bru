@@ -1,0 +1,21 @@
+meta {
+  name: Undo Cancel Next Week
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/food/undo-cancel
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Undo Cancel Next Week
+  
+  Reverts the bulk disable of food for the next week.
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Enable Year
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/food/enable-year
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Enable Year
+  
+  Enables food for the entire year.
+}

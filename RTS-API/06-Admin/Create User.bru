@@ -1,0 +1,33 @@
+meta {
+  name: Create User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/admin/create-user
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "New User",
+    "email": "newuser@rts.com",
+    "password": "Password@123",
+    "role": "Requestor",
+    "department": "IT",
+    "empId": "RTS-001",
+    "active": true
+  }
+}
+
+docs {
+  # Create User
+  
+  Allows an admin to create a new user account.
+}

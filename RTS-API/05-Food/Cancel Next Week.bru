@@ -1,0 +1,21 @@
+meta {
+  name: Cancel Next Week
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/food/cancel
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Cancel Food Next Week
+  
+  Bulk disables food for the next week.
+}

@@ -1,0 +1,21 @@
+meta {
+  name: User Log Report
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/admin/user-log-report
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # User Log Report
+  
+  Returns the user log report for administrative monitoring.
+}

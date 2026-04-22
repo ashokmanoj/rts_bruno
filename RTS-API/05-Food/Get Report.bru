@@ -1,0 +1,21 @@
+meta {
+  name: Get Report
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/food/report
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Report
+  
+  Gets the food report (Requires HOD role).
+}

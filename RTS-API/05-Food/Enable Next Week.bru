@@ -1,0 +1,21 @@
+meta {
+  name: Enable Next Week
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/food/enable-next-week
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Enable Next Week
+  
+  Enables food for the next week only.
+}

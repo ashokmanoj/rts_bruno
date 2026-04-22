@@ -1,0 +1,25 @@
+meta {
+  name: Subscribe to Food
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/food/subscribe
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "startDate": "2026-04-27",
+    "location": "Bangalore"
+  }
+}
+
+docs {
+  # Subscribe to Food
+  
+  Enables food for a user starting from a specific Monday (`startDate`).
+  `location` must be provided (e.g., "Bangalore").
+}

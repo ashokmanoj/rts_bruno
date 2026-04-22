@@ -1,0 +1,21 @@
+meta {
+  name: Toggle Status
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/admin/toggle-status/EMP-123
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Toggle User Status
+  
+  Allows an admin to toggle the active status of a user using their empId.
+}

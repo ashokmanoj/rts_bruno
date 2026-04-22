@@ -1,0 +1,21 @@
+meta {
+  name: Disable Year
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/food/disable-year
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Disable Year
+  
+  Disables food for the entire year.
+}

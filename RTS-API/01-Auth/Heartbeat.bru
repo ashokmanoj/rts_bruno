@@ -1,0 +1,21 @@
+meta {
+  name: Heartbeat
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/heartbeat
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Heartbeat
+  
+  Used to ping the server to keep the session alive or verify connectivity.
+}

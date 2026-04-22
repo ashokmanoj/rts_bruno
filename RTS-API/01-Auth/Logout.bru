@@ -1,0 +1,30 @@
+meta {
+  name: Logout
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/logout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("token", "");
+    console.log("✅ Logged out successfully");
+  } else {
+    console.log("❌ Logout failed:", res.body.error);
+  }
+}
+
+docs {
+  # Logout
+  
+  Invalidates the current session on the client by clearing the token.
+}
