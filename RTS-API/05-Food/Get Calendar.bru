@@ -5,17 +5,34 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/food/calendar
+  url: {{baseUrl}}/food/calendar?month={{month}}&year={{year}}
   body: none
   auth: bearer
+}
+
+params:query {
+  month: {{month}}
+  year: {{year}}
 }
 
 auth:bearer {
   token: {{token}}
 }
 
+vars:pre-request {
+  month: 5
+  year: 2026
+}
+
 docs {
   # Get Calendar
   
-  Gets the food calendar for the user.
+  Gets the food calendar for the user for the given month and year.
+  
+  ## Query Parameters
+  - `month` (number, 1–12): Month to fetch. Defaults to current month.
+  - `year` (number): Year to fetch. Defaults to current year.
+  
+  ## Example
+  `GET /food/calendar?month=4&year=2026`
 }

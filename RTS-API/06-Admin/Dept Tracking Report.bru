@@ -1,0 +1,21 @@
+meta {
+  name: Dept Tracking Report
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/admin/dept-tracking-report
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Dept Tracking Report
+  
+  Returns aggregated request stats for every department, showing total, open, pending, closed, and rejected counts along with efficiency metrics.
+}
