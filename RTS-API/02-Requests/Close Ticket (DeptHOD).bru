@@ -34,7 +34,7 @@ script:post-response {
 docs {
   # Close Ticket
 
-  **Only DeptHOD can close tickets.**
+  **Who can close:** DeptHOD, Management, or any team member whose dept is the `assignedDept` and is different from the requestor's dept.
 
   ## What it does
   - Sets `is_closed = true`
@@ -50,7 +50,7 @@ docs {
   | file  | File   | Resolution document/photo (optional)     |
 
   ## Error responses
-  - **403** — not logged in as DeptHOD
+  - **403** — not authorized to close (wrong role or same-dept request)
   - **409** — ticket is already closed
 
   ## Test DeptHOD accounts

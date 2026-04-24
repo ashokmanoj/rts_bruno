@@ -19,9 +19,17 @@ body:json {
 
 script:post-response {
   if (res.status === 200) {
-    bru.setEnvVar("token", res.body.token);
-    console.log("✅ Token saved");
-    console.log("👤 Logged in as:", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+    if (res.body.needsRoleSelection) {
+      // Multi-role user — save temp token, log available roles
+      bru.setEnvVar("tempToken", res.body.tempToken);
+      console.log("⚠️  Multi-role user — role selection required.");
+      console.log("📋 Available roles:", JSON.stringify(res.body.availableRoles));
+      console.log("🔑 tempToken saved — use 'Select Role' request next.");
+    } else {
+      bru.setEnvVar("token", res.body.token);
+      console.log("✅ Token saved");
+      console.log("👤 Logged in as:", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+    }
   } else {
     console.log("❌ Login failed:", res.body.error);
   }
@@ -29,38 +37,87 @@ script:post-response {
 
 docs {
   # Login
-  
-  Returns a JWT token + user payload.
+
+  Returns a JWT token + user payload on success.
   Token is **auto-saved** to `{{token}}` env variable — no manual copy needed.
-  
+
+  ## Multi-role users
+  If the user has multiple roles, the response is:
+  ```json
+  {
+    "needsRoleSelection": true,
+    "tempToken": "<short-lived 10-min token>",
+    "availableRoles": [
+      { "role": "Requestor", "dept": "Broadcasting" },
+      { "role": "RM", "dept": "Operation" }
+    ]
+  }
+  ```
+  The `tempToken` is auto-saved to `{{tempToken}}`. Use the **Select Role** request next
+  to pick a role and get a full token.
+
   ## Password rules
   - Requestor / RM / HOD → `FirstName@123`
   - DeptHOD              → `Dept@123`   (e.g. `Software@123`)
   - Admin                → `Admin@123`
-  
+
   ## Quick test accounts per role
-  
-  | Role      | Email                           | Password          |
-  |-----------|---------------------------------|-------------------|
-  | Requestor | santhosh.sm9@gmail.com          | Santhosh@123      |
-  | Requestor | maneeshlakaji@gmail.com         | Maneesh@123       |
-  | RM        | kadakkath@gmail.com             | Anil@123          |
-  | RM        | bik.haz.1989@gmail.com          | Bikash@123        |
-  | RM        | rhlsubba19@gmail.com            | Rahul@123         |
-  | HOD       | bhatraveendrabeegar@gmail.com   | Raveendra@123     |
-  | HOD       | pruthvi2k7@gmail.com            | Pruthvi@123       |
-  | HOD       | manjumsw75@gmail.com            | Manjunatha@123    |
-  | DeptHOD   | academic@rts.com                | Academic@123      |
-  | DeptHOD   | software@rts.com                | Software@123      |
-  | DeptHOD   | operation@rts.com               | Operation@123     |
-  | DeptHOD   | animation@rts.com               | Animation@123     |
-  | DeptHOD   | accounts@rts.com                | Accounts@123      |
-  | DeptHOD   | hr@rts.com                      | Hr@123            |
-  | DeptHOD   | broadcasting@rts.com            | Broadcasting@123  |
-  | DeptHOD   | technicalsupport@rts.com        | Technicalsupport@123 |
-  | DeptHOD    | store@rts.com                   | Store@123         |
-  | DeptHOD    | purchase@rts.com                | Purchase@123      |
-  | DeptHOD    | marketing@rts.com               | Marketing@123     |
-  | Management | management@rts.com              | Management@123    |
-  | Admin      | admin@rts.com                   | Admin@123         |
+
+  | Role       | Email                        | Password             |
+  |------------|------------------------------|----------------------|
+  | Requestor  | santhosh.sm9@gmail.com       | Santhosh@123         |
+  | Requestor  | maneeshlakaji@gmail.com      | Maneesh@123          |
+  | RM         | kadakkath@gmail.com          | Anil@123             |
+  | RM         | bik.haz.1989@gmail.com       | Bikash@123           |
+  | RM         | rhlsubba19@gmail.com         | Rahul@123            |
+  | HOD        | bhatraveendrabeegar@gmail.com| Raveendra@123        |
+  | HOD        | pruthvi2k7@gmail.com         | Pruthvi@123          |
+  | HOD        | manjumsw75@gmail.com         | Manjunatha@123       |
+  | DeptHOD    | academic@rts.com             | Academic@123         |
+  | DeptHOD    | software@rts.com             | Software@123         |
+  | DeptHOD    | operation@rts.com            | Operation@123        |
+  | DeptHOD    | animation@rts.com            | Animation@123        |
+  | DeptHOD    | accounts@rts.com             | Accounts@123         |
+  | DeptHOD    | hr@rts.com                   | Hr@123               |
+  | DeptHOD    | broadcasting@rts.com         | Broadcasting@123     |
+  | DeptHOD    | technicalsupport@rts.com     | Technicalsupport@123 |
+  | DeptHOD    | store@rts.com                | Store@123            |
+  | DeptHOD    | purchase@rts.com             | Purchase@123         |
+  | DeptHOD    | marketing@rts.com            | Marketing@123        |
+  | Management | management@rts.com           | Management@123       |
+  | Admin      | admin@rts.com                | Admin@123            |
+
+  ## Multi-role test accounts (from PDF)
+
+  ### Cross-department (3+ roles across multiple depts)
+  | Employee              | Emp ID   | Email                        | Roles                                         |
+  |-----------------------|----------|------------------------------|-----------------------------------------------|
+  | Pavan Verma           | AC-1378  | pvnverma77@gmail.com         | Req/Broadcasting, RM/Broadcasting+Operation+System admin |
+  | Vamsi Krishna         | AC-1379  | vkagnihotram@gmail.com       | RM/Broadcasting+Tech Support, Req+RM+DeptHOD/Operation |
+  | Sudhakar G Hegde      | GN-1042  | sghegde2010@gmail.com        | RM/Admin, Req+RM+DeptHOD/HR                   |
+  | Manjunatha            | GN-1009  | manjumsw75@gmail.com         | RM/Documantation, Req+RM+DeptHOD/Operation    |
+  | Nithish V             | AC-1030  | v.nithish@gmail.com          | RM/Animation, Req+RM+DeptHOD/Software         |
+  | Vinaya Keshava Y      | GN-1023  | vinayakeshava@gmail.com      | RM/Broadcasting, Req+RM+DeptHOD/System admin  |
+  | Akhilesh B            | G-1007   | akhilbetta@gmail.com         | RM/Broadcasting+Purchase+Store+System admin, Req/Management |
+  | Kishor Kumar Baishya  | G-1136   | (check DB)                   | RM/Broadcasting, Req+RM/Store                 |
+  | PUNDARIKA PERLAMPADY  | GN-1012  | (check DB)                   | RM/Accounts, Req+RM/Store                     |
+  | Nishant Bhat          | AC-1103  | (check DB)                   | Req/Business Development, RM/Operation        |
+  | Vikas Deep            | GN-1018  | (check DB)                   | RM/Broadcasting, Req/Business Development     |
+
+  ### Single-department multi-role (Requestor + RM/HOD/DeptHOD in same dept)
+  | Employee                   | Emp ID   | Email                           | Roles                             |
+  |----------------------------|----------|---------------------------------|-----------------------------------|
+  | Santosh Kumar              | G-1104   | mbox.santosh@gmail.com          | Req+RM+HOD+DeptHOD/Software       |
+  | LALITESHWAR KUMAR          | G-1091   | laliteshwarkumar11@gmail.com    | Req+RM+HOD+DeptHOD/Software       |
+  | Shrinidhi Irodi            | AC-1248  | shrinidhi.irodi@gmail.com       | Req+RM+HOD+DeptHOD/Software       |
+  | Raveendra Ganapati Bhat    | AC-1381  | bhatraveendrabeegar@gmail.com   | Req+RM+DeptHOD/Academic           |
+  | Pavan T V                  | AC-1133  | pavantallam03@gmail.com         | Req+RM+DeptHOD/Accounts           |
+  | Pruthvi Raj R              | GN-1011  | pruthvi2k7@gmail.com            | Req+RM+DeptHOD/Animation          |
+  | SRIDHAR M N                | GN-1015  | sridharmn99@gmail.com           | Req+RM+HOD/Academic               |
+  | Carol Preethi D'Souza      | GN-1001  | preethicarol@gmail.com          | Req+HOD/Corporate Communications  |
+  | Anil Kumar G               | A-1127   | kadakkath@gmail.com             | Req+RM/Academic                   |
+  | BIKASH Hazarika            | A-1148   | bik.haz.1989@gmail.com          | Req+RM/Operation                  |
+  | Rahul Subba                | AC-1139  | rhlsubba19@gmail.com            | Req+RM/Technical Support          |
+  | Parameshwar V Hegde        | GN-1041  | vivekhegde09@gmail.com          | Req+RM/Accounts                   |
+  | Sudhakara B G              | GN-1016  | sudhakarmdr@gmail.com           | Req+RM/Govt. Relations            |
 }

@@ -29,7 +29,8 @@ query {
   ~type: sent
   ~type: received
   ~type: all
-  ~date: 2026-04-18
+  ~startDate: 2026-04-01
+  ~endDate: 2026-04-30
 }
 
 auth:bearer {
@@ -70,11 +71,12 @@ docs {
   - `name`: Filter by requestor name (or `all`)
   - `dept`: Filter by "from" department (Requested Department) (or `all`)
   - `assignedDept`: Filter by "to" department (Assigned Department) (or `all`)
-  - `type`: 
+  - `type`:
     - `sent`: I am the owner of the request
     - `received`: Assigned to my dept, but NOT owned by me
     - `all`: Show both sent and received
-  - `date`: Filter by creation date (YYYY-MM-DD)
+  - `startDate`: Filter from date (YYYY-MM-DD), inclusive from 00:00
+  - `endDate`:   Filter to date (YYYY-MM-DD), inclusive until 23:59
 
   ## Pagination
   Response is now paginated:

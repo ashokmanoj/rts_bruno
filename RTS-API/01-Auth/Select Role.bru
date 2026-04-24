@@ -1,0 +1,56 @@
+meta {
+  name: Select Role
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/select-role
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tempToken}}
+}
+
+body:json {
+  {
+    "role": "Requestor",
+    "dept": "Broadcasting"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("token", res.body.token);
+    console.log("✅ Role selected — full token saved.");
+    console.log("👤", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+  } else {
+    console.log("❌ Select role failed:", res.body.error);
+  }
+}
+
+docs {
+  # Select Role
+
+  Used by **multi-role users** after Login returns `needsRoleSelection: true`.
+
+  ## Flow
+  1. Call **Login** → get `tempToken` (auto-saved to `{{tempToken}}`)
+  2. Call this request with the chosen `role` + `dept` from `availableRoles`
+  3. Full JWT is returned and **auto-saved** to `{{token}}`
+
+  ## Request body
+  ```json
+  { "role": "Requestor", "dept": "Broadcasting" }
+  ```
+  Replace with any pair from the `availableRoles` list returned by Login.
+
+  ## Authorization
+  Uses `{{tempToken}}` (10-minute short-lived token). If it expires, call Login again.
+
+  ## Errors
+  - `403 Invalid role selection` — the chosen role/dept is not assigned to this user
+  - `401 Invalid token type` — you sent a full token instead of a temp token
+}

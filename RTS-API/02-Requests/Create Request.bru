@@ -50,7 +50,8 @@ docs {
   | file         | no       | Attachment up to 10 MB                         |
 
   ## Response
-  - `dept`         — requestor's real department (from user profile in DB)
-  - `assignedDept` — which dept is handling this request
-  - `isOwnRequest` — always true for the person who just created it
+  - `dept`          — requestor's real department (from user profile in DB)
+  - `assignedDept`  — which dept is handling this request
+  - `requestorRole` — the role the user was acting as when they submitted (e.g. "RM", "HOD")
+  - `isOwnRequest`  — always true for the person who just created it
 }

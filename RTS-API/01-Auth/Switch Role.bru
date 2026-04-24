@@ -1,0 +1,56 @@
+meta {
+  name: Switch Role
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/switch-role
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "role": "RM",
+    "dept": "Operation"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("token", res.body.token);
+    console.log("✅ Role switched — new token saved.");
+    console.log("👤", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+  } else {
+    console.log("❌ Switch role failed:", res.body.error);
+  }
+}
+
+docs {
+  # Switch Role
+
+  Switches the active role of an **already logged-in** multi-role user.
+  Issues a new full JWT with the selected role/dept without requiring re-login.
+
+  ## When to use
+  - User is logged in (has a valid `{{token}}`)
+  - They want to change their active role (e.g. from Requestor → RM)
+
+  ## Request body
+  ```json
+  { "role": "RM", "dept": "Operation" }
+  ```
+  The role/dept must be one assigned to this user in the `user_roles` table.
+
+  ## Response
+  Returns a new `token` + updated `user` object. New token is **auto-saved** to `{{token}}`.
+
+  ## Errors
+  - `403 Invalid role selection` — the chosen role/dept is not assigned to this user
+  - `401 Role selection required` — you sent a temp token instead of a full token
+}
