@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/food/undo-cancel
+  url: {{baseUrl}}/food/undo-cancel-week
   body: none
   auth: bearer
 }
@@ -15,7 +15,8 @@ auth:bearer {
 }
 
 docs {
-  # Undo Cancel Next Week
-  
-  Reverts the bulk disable of food for the next week.
+  # Undo Cancel Next Week (Button 1 — undo)
+
+  Deletes the single-week FoodCancellation for the upcoming Monday,
+  restoring next week's food. Available before Sunday 10:30 AM IST.
 }

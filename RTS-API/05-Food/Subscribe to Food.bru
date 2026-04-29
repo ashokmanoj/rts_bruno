@@ -6,20 +6,18 @@ meta {
 
 post {
   url: {{baseUrl}}/food/subscribe
-  body: json
-  auth: inherit
+  body: none
+  auth: bearer
 }
 
-body:json {
-  {
-    "startDate": "2026-04-27",
-    "location": "Bangalore"
-  }
+auth:bearer {
+  token: {{token}}
 }
 
 docs {
   # Subscribe to Food
-  
-  Enables food for a user starting from a specific Monday (`startDate`).
-  `location` must be provided (e.g., "Bangalore").
+
+  Opts the authenticated user into the food program.
+  Subscription starts from the next Monday (or this Monday if today is Monday).
+  No request body required.
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/food/cancel
+  url: {{baseUrl}}/food/cancel-week
   body: none
   auth: bearer
 }
@@ -15,7 +15,9 @@ auth:bearer {
 }
 
 docs {
-  # Cancel Food Next Week
-  
-  Bulk disables food for the next week.
+  # Cancel Next Week (Button 1)
+
+  Creates a single-week FoodCancellation for the upcoming Monday.
+  Only affects next week — all other weeks remain active.
+  Can be undone before Sunday 10:30 AM IST.
 }

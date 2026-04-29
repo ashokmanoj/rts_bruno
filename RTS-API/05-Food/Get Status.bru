@@ -16,6 +16,18 @@ auth:bearer {
 
 docs {
   # Get Food Status
-  
-  Gets the user's food subscription status.
+
+  Returns the user's current food subscription state.
+
+  ## Response fields
+  - `subscribed` — whether a FoodSubscription record exists
+  - `isActive` — subscription is not fully disabled
+  - `isCancelledNextWeek` — single-week cancellation exists for next Monday
+  - `nextWeekSuspended` — next week will have no food (either cancelled or suspended)
+  - `isBulkSuspendedNextWeek` — year was cancelled starting next Monday (Button 2 active)
+  - `isEnabledNextWeekOnly` — year is suspended but next week is enabled (Button 3 active)
+  - `suspendedFrom` — date from which food is suspended (null if not suspended)
+  - `canCancelNow` — whether the cancellation window is open (Mon–Sat always; Sun before 10:30 AM IST)
+  - `subscription.optedInAt` — when the subscription was created
+  - `subscription.startDate` — first active Monday of the subscription
 }

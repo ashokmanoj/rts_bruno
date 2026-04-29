@@ -1,7 +1,7 @@
 meta {
   name: Enable Next Week
   type: http
-  seq: 5
+  seq: 7
 }
 
 post {
@@ -15,7 +15,9 @@ auth:bearer {
 }
 
 docs {
-  # Enable Next Week
-  
-  Enables food for the next week only.
+  # Enable Next Week Only (Button 3)
+
+  When the year is suspended, enables food for next week only by setting
+  suspendedFrom = week-after-next. Also removes any next-week cancellation.
+  Can be undone before Sunday 10:30 AM IST.
 }

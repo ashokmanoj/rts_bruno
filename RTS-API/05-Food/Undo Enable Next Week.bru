@@ -1,0 +1,23 @@
+meta {
+  name: Undo Enable Next Week
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/food/undo-enable-next-week
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Undo Enable Next Week (Button 3 — undo)
+
+  Restores the year suspension back to next Monday (reverses Enable Next Week Only).
+  Sets suspendedFrom = next Monday and removes any next-week cancellation.
+  Available before Sunday 10:30 AM IST.
+}

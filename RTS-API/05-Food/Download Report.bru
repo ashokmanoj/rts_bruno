@@ -1,21 +1,38 @@
 meta {
   name: Download Report
   type: http
-  seq: 10
+  seq: 13
 }
 
 get {
-  url: {{baseUrl}}/food/report/download
+  url: {{baseUrl}}/food/report/download?type=month&month={{month}}&year={{year}}
   body: none
   auth: bearer
+}
+
+params:query {
+  type: month
+  month: {{month}}
+  year: {{year}}
 }
 
 auth:bearer {
   token: {{token}}
 }
 
+vars:pre-request {
+  month: 4
+  year: 2026
+}
+
 docs {
-  # Download Report
-  
-  Downloads the food report (Requires HOD role).
+  # Download Food Report CSV (HOD only)
+
+  Downloads the food report as a CSV file for the given period.
+  Accepts the same query parameters as Get Report.
+
+  ## Query Parameters
+  - `type` — `"month"` (default) or `"week"`
+  - `month` / `year` — for monthly reports
+  - `weekStart` — ISO date string for weekly reports
 }

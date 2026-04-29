@@ -1,7 +1,7 @@
 meta {
   name: Enable Year
   type: http
-  seq: 6
+  seq: 9
 }
 
 post {
@@ -15,7 +15,8 @@ auth:bearer {
 }
 
 docs {
-  # Enable Year
-  
-  Enables food for the entire year.
+  # Enable Year (Button 4)
+
+  Clears isActive=true and suspendedFrom=null on the FoodSubscription,
+  re-enabling food for the rest of the year.
 }

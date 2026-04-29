@@ -1,0 +1,22 @@
+meta {
+  name: Undo Cancel Year
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/food/undo-cancel
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Undo Cancel Year (Button 2 — undo)
+
+  Clears suspendedFrom on the FoodSubscription, restoring food
+  for all upcoming weeks. Available before Sunday 10:30 AM IST.
+}

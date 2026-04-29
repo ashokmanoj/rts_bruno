@@ -1,21 +1,44 @@
 meta {
   name: Get Report
   type: http
-  seq: 9
+  seq: 12
 }
 
 get {
-  url: {{baseUrl}}/food/report
+  url: {{baseUrl}}/food/report?type=month&month={{month}}&year={{year}}
   body: none
   auth: bearer
+}
+
+params:query {
+  type: month
+  month: {{month}}
+  year: {{year}}
 }
 
 auth:bearer {
   token: {{token}}
 }
 
+vars:pre-request {
+  month: 4
+  year: 2026
+}
+
 docs {
-  # Get Report
-  
-  Gets the food report (Requires HOD role).
+  # Get Food Report (HOD only)
+
+  Returns the food report for the given period.
+
+  ## Query Parameters
+  - `type` — `"month"` (default) or `"week"`
+  - `month` — 1–12 (used when type=month)
+  - `year` — full year e.g. 2026 (used when type=month)
+  - `weekStart` — ISO date string e.g. `2026-04-28` (used when type=week)
+
+  ## Example — monthly
+  `GET /food/report?type=month&month=4&year=2026`
+
+  ## Example — weekly
+  `GET /food/report?type=week&weekStart=2026-04-28`
 }
