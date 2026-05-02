@@ -1,0 +1,21 @@
+meta {
+  name: Get VAPID Key
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/push/vapid-public-key
+  body: none
+  auth: none
+}
+
+docs {
+  # Get VAPID Public Key
+
+  Returns the server's VAPID public key needed by the browser to create a push subscription.
+  No authentication required.
+
+  ## Response
+  - `publicKey` — Base64 URL-encoded VAPID public key
+}

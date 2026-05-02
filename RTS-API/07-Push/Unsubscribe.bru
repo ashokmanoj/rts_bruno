@@ -1,0 +1,35 @@
+meta {
+  name: Unsubscribe
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/push/unsubscribe
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/example-endpoint"
+  }
+}
+
+docs {
+  # Remove Push Subscription
+
+  Removes a push subscription for the authenticated user.
+  Called automatically when the user clicks "Turn off notifications".
+
+  ## Body
+  - `endpoint` — the exact endpoint URL of the subscription to remove
+
+  ## Notes
+  - Only removes the subscription if it belongs to the caller (empId check)
+  - Silently succeeds if the endpoint does not exist
+}

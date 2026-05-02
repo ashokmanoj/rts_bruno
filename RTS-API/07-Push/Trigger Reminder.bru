@@ -1,0 +1,42 @@
+meta {
+  name: Trigger Reminder
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/push/trigger-reminder
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Trigger Food Reminder (Manual)
+
+  Immediately sends the weekly food reminder push notification to ALL active
+  food subscribers who have a registered push subscription.
+
+  ## Access
+  Restricted to DeptHOD of HR or Food Committee only.
+  Returns 403 for all other roles.
+
+  ## Notification content
+  - Title: "🍱 Food Reminder"
+  - Body: "Have you sorted next week's food? Tap 'Yes' if you're all set, or 'No' to update your preference now."
+  - Actions: "Yes, I'm done ✓" (dismiss) | "No, take me there →" (opens food page)
+  - requireInteraction: true (stays until user acts)
+
+  ## Automatic schedule
+  The same notification fires automatically via cron:
+  - Monday    5:00 PM IST (11:30 UTC)
+  - Wednesday 5:00 PM IST (11:30 UTC)
+  - Saturday  5:00 PM IST (11:30 UTC)
+
+  ## Response
+  - `success: true`
+  - `target: "all"`
+}

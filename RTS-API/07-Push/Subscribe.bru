@@ -1,0 +1,42 @@
+meta {
+  name: Subscribe
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/push/subscribe
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/example-endpoint",
+    "keys": {
+      "p256dh": "base64-encoded-p256dh-key",
+      "auth": "base64-encoded-auth-secret"
+    }
+  }
+}
+
+docs {
+  # Save Push Subscription
+
+  Saves the browser push subscription for the authenticated user.
+  Called automatically by the frontend after the user grants notification permission.
+
+  ## Body
+  - `endpoint` — push service URL from the browser's PushSubscription object
+  - `keys.p256dh` — encryption public key
+  - `keys.auth` — authentication secret
+
+  ## Notes
+  - Deletes ALL previous subscriptions for this user, then inserts the new one.
+  - Only the most recently subscribed browser/device receives notifications.
+  - This prevents duplicate notifications when a user has multiple browsers open.
+}
