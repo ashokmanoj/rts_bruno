@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "email": "manojha346@gmail.com",
-    "password": "Manoj@123"
+    "password": "Test@123"
   }
 }
 
@@ -37,10 +37,10 @@ script:post-response {
 
 docs {
   # Login
-
+  
   Returns a JWT token + user payload on success.
   Token is **auto-saved** to `{{token}}` env variable — no manual copy needed.
-
+  
   ## Multi-role users
   If the user has multiple roles, the response is:
   ```json
@@ -55,14 +55,14 @@ docs {
   ```
   The `tempToken` is auto-saved to `{{tempToken}}`. Use the **Select Role** request next
   to pick a role and get a full token.
-
+  
   ## Password rules
   - Requestor / RM / HOD → `FirstName@123`
   - DeptHOD              → `Dept@123`   (e.g. `Software@123`)
   - Admin                → `Admin@123`
-
+  
   ## Quick test accounts per role
-
+  
   | Role       | Email                        | Password             |
   |------------|------------------------------|----------------------|
   | Requestor  | santhosh.sm9@gmail.com       | Santhosh@123         |
@@ -86,9 +86,9 @@ docs {
   | DeptHOD    | marketing@rts.com            | Marketing@123        |
   | Management | management@rts.com           | Management@123       |
   | Admin      | admin@rts.com                | Admin@123            |
-
+  
   ## Multi-role test accounts (from PDF)
-
+  
   ### Cross-department (3+ roles across multiple depts)
   | Employee              | Emp ID   | Email                        | Roles                                         |
   |-----------------------|----------|------------------------------|-----------------------------------------------|
@@ -103,7 +103,7 @@ docs {
   | PUNDARIKA PERLAMPADY  | GN-1012  | (check DB)                   | RM/Accounts, Req+RM/Store                     |
   | Nishant Bhat          | AC-1103  | (check DB)                   | Req/Business Development, RM/Operation        |
   | Vikas Deep            | GN-1018  | (check DB)                   | RM/Broadcasting, Req/Business Development     |
-
+  
   ### Single-department multi-role (Requestor + RM/HOD/DeptHOD in same dept)
   | Employee                   | Emp ID   | Email                           | Roles                             |
   |----------------------------|----------|---------------------------------|-----------------------------------|

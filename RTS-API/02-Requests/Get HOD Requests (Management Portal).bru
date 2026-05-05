@@ -1,0 +1,76 @@
+meta {
+  name: Get HOD Requests (Management Portal)
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/requests/hod-pending
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const requests = Array.isArray(res.body) ? res.body : (res.body.data ?? []);
+    const pending  = requests.filter(r => !r.hodStatus || r.hodStatus === "--" || r.hodStatus === "Checking");
+    console.log("✅ Got", requests.length, "HOD request(s) —", pending.length, "still pending");
+    if (pending.length > 0) {
+      bru.setEnvVar("requestId", String(pending[0].id));
+      console.log("🔖 requestId saved (first pending):", pending[0].id, "| Purpose:", pending[0].purpose);
+    }
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as Management first");
+  } else {
+    console.log("❌ Error:", res.body.error);
+  }
+}
+
+docs {
+  # Get HOD Requests — Management Portal
+
+  Returns **all** requests where `requestorRole = "HOD"` and `rmStatus ≠ "Rejected"`.
+  Used exclusively by the Management Portal (HOD Approval Dashboard).
+
+  **Login as Management** before calling this endpoint.
+
+  ## Behaviour
+  - Returns requests regardless of `hodStatus` — pending, approved, and rejected are all included.
+  - Ordered by `createdAt` descending (newest first).
+  - Previously this endpoint only returned pending requests (`hodStatus` in `["--", "Checking"]`).
+    That filter has been removed so the Management Portal retains full history after a decision is made.
+
+  ## Response (array of request objects)
+  ```json
+  [
+    {
+      "id": 42,
+      "purpose": "Laptop replacement",
+      "rmStatus": "Approved",
+      "hodStatus": "--",       // pending
+      "assignedStatus": "Open",
+      "isClosed": false,
+      ...
+    },
+    {
+      "id": 38,
+      "purpose": "Software license",
+      "rmStatus": "Approved",
+      "hodStatus": "Approved", // already decided
+      ...
+    }
+  ]
+  ```
+
+  ## hodStatus values
+  | Value      | Meaning                        |
+  |------------|--------------------------------|
+  | `--`       | Pending — no decision yet      |
+  | `Checking` | Being reviewed by Management   |
+  | `Approved` | HOD approved                   |
+  | `Rejected` | HOD rejected                   |
+}

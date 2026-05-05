@@ -57,6 +57,16 @@ docs {
 
   Returns requests filtered by the logged-in user's role and provided filters.
 
+  ## Role-based visibility
+  | Role             | Sees                                                                                  |
+  |------------------|---------------------------------------------------------------------------------------|
+  | Admin/Management | All requests                                                                          |
+  | RM / HOD / DeptHOD | Own requests + requests in their dept (current or past) — includes forwarded-away requests tracked via `chatMessages.originalDept` |
+  | Requestor        | Own requests + requests currently/previously assigned to their dept from outside      |
+
+  > Requests that were forwarded **out** of a department remain visible to that department's staff
+  > because the `originalDept` field on every chat/approval message is used to retain history.
+
   ## Filters
   - `status`: Ticket lifecycle status
     - `open`: where `resolvedDate` is null (Ticket is still active)
