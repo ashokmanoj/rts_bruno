@@ -58,38 +58,34 @@ docs {
   Returns requests filtered by the logged-in user's role and provided filters.
 
   ## Role-based visibility
-  | Role             | Sees                                                                                  |
-  |------------------|---------------------------------------------------------------------------------------|
-  | Admin/Management | All requests                                                                          |
-  | RM / HOD / DeptHOD | Own requests + requests in their dept (current or past) — includes forwarded-away requests tracked via `chatMessages.originalDept` |
-  | Requestor        | Own requests + requests currently/previously assigned to their dept from outside      |
+  | Role               | Sees                                                                                    |
+  |--------------------|-----------------------------------------------------------------------------------------|
+  | Admin / Management | All requests                                                                            |
+  | RM / HOD / DeptHOD | Own requests + all requests in their dept (requestor's OR assigned dept)               |
+  | Regular staff      | Own requests + dept-wide requests (no specific assignee) + requests assigned to them   |
 
-  > Requests that were forwarded **out** of a department remain visible to that department's staff
-  > because the `originalDept` field on every chat/approval message is used to retain history.
+  ### Person-assignment visibility rule
+  When a request has `assignedPersonEmpId` set (specific persons named):
+  - Only the **named persons** and the **DeptHOD** of the assigned dept can see it
+  - All other team members of that dept are excluded
+  - If `assignedPersonEmpId` is null/empty — the entire assigned dept can see it
 
   ## Filters
   - `status`: Ticket lifecycle status
-    - `open`: where `resolvedDate` is null (Ticket is still active)
-    - `closed`: where `resolvedDate` is NOT null (Ticket is resolved)
-    - `all`: Show both open and closed tickets
-  - `assignedStatus`: The specific status in the assigned department
+    - `open`: where `resolvedDate` is null (active)
+    - `closed`: where `resolvedDate` is NOT null (resolved)
+  - `assignedStatus`: Status in the assigned department
     - `Open`: Just created
-    - `Checking`: Being looked at by a team member
+    - `Checking`: Being reviewed
     - `Closed`: Resolved and closed
-    - `all`: Show all assigned statuses
   - `search`: Keyword search (purpose, description, empId, name)
-  - `name`: Filter by requestor name (or `all`)
-  - `dept`: Filter by "from" department (Requested Department) (or `all`)
-  - `assignedDept`: Filter by "to" department (Assigned Department) (or `all`)
-  - `type`:
-    - `sent`: I am the owner of the request
-    - `received`: Assigned to my dept, but NOT owned by me
-    - `all`: Show both sent and received
-  - `startDate`: Filter from date (YYYY-MM-DD), inclusive from 00:00
-  - `endDate`:   Filter to date (YYYY-MM-DD), inclusive until 23:59
+  - `name`: Filter by requestor name
+  - `dept`: Filter by requestor's department
+  - `assignedDept`: Filter by assigned department
+  - `type`: `sent` (own) / `received` (incoming to my dept)
+  - `startDate` / `endDate`: Date range (YYYY-MM-DD)
 
   ## Pagination
-  Response is now paginated:
   ```json
   {
     "data": [...],
@@ -103,4 +99,19 @@ docs {
     }
   }
   ```
+
+  ## New response fields per request object
+  | Field               | Description                                              |
+  |---------------------|----------------------------------------------------------|
+  | dueDate             | Formatted due date                                       |
+  | dueDateRaw          | ISO due date                                             |
+  | priority            | Auto-computed: High / Medium / Low / Overdue / null      |
+  | daysUntilDue        | Days remaining (negative = overdue)                      |
+  | assignedPersonEmpId | Comma-separated empIds of named assignees                |
+  | assignedPersonName  | Comma-separated names of named assignees                 |
+  | checkingDeadline    | ISO datetime for checking deadline                       |
+  | checkingReason      | Reason stored when status set to Checking                |
+  | checkingDaysLeft    | Days until checking deadline                             |
+  | acknowledgement     | `"Received"`, `"Not Received"`, or null                 |
+  | acknowledgedAt      | ISO datetime of acknowledgement                          |
 }

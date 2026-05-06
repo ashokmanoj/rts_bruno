@@ -1,0 +1,59 @@
+meta {
+  name: Get Users by Dept
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/requests/users-by-dept
+  body: none
+  auth: bearer
+}
+
+query {
+  depts: Software,HR
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Got", res.body.length, "user(s)");
+    res.body.forEach(u => console.log("  ", u.empId, u.name, "-", u.dept, "(", u.role, ")"));
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Users by Dept
+
+  Returns active employees in the specified department(s).
+  Used by the Add Request modal to populate the person-assignment picker.
+
+  ## Query params
+  | Param | Required | Description                                                |
+  |-------|----------|------------------------------------------------------------|
+  | depts | YES      | Comma-separated department names e.g. `Software,HR`        |
+
+  ## Response
+  Array of user objects:
+  ```json
+  [
+    {
+      "empId": "EMP001",
+      "name": "Alice Kumar",
+      "dept": "Software",
+      "designation": "Software Engineer",
+      "role": "Requestor"
+    }
+  ]
+  ```
+
+  ## Notes
+  - Only **active** users (`isActive: true`) are returned
+  - Ordered alphabetically by name
+  - Requires authentication (any role)
+}

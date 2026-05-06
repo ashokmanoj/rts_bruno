@@ -17,13 +17,17 @@ auth:bearer {
 body:json {
   {
     "decision": "Checking",
-    "comment": "Under review. Need to verify the technical specifications before approving."
+    "comment": "Under review. Need to verify the technical specifications before approving.",
+    "checkingDeadline": "2026-05-15T18:00:00.000Z",
+    "checkingReason": "Waiting for vendor quote before proceeding."
   }
 }
 
 script:post-response {
   if (res.status === 200) {
     console.log("✅ Status set to Checking");
+    console.log("   Deadline:", res.body.checkingDeadline || "none");
+    console.log("   Days left:", res.body.checkingDaysLeft);
   } else {
     console.log("❌", res.body.error);
   }
@@ -33,6 +37,21 @@ docs {
   # Checking Request
 
   Sets the status to `Checking` — used when the approver needs more time or information.
-  Works for RM, HOD, and DeptHOD.
+  Works for RM, HOD, DeptHOD, and specifically-assigned team members.
   An approval card (type=approval, status=Checking) is auto-logged in chat.
+
+  ## Body fields
+  | Field            | Required | Description                                              |
+  |------------------|----------|----------------------------------------------------------|
+  | decision         | YES      | Must be `"Checking"`                                     |
+  | comment          | no       | Optional note shown in chat                              |
+  | checkingDeadline | no       | ISO datetime by which checking will be complete          |
+  | checkingReason   | no       | Reason / what is being checked                           |
+
+  ## Response (new fields)
+  | Field            | Description                                            |
+  |------------------|--------------------------------------------------------|
+  | checkingDeadline | ISO datetime of the deadline                           |
+  | checkingReason   | Reason stored on the request                           |
+  | checkingDaysLeft | Integer days until checkingDeadline (negative=overdue) |
 }
