@@ -17,10 +17,9 @@ auth:bearer {
 body:multipart-form {
   purpose: New Laptop Request
   assignedDept: Software
+  assignedDepts: Software
   description: My current laptop is 5 years old and unable to run required software efficiently.
   ~dueDate: 2026-06-01
-  ~assignedPersonEmpId: EMP001,EMP002
-  ~assignedPersonName: Alice Kumar, Bob Singh
   ~file: @file(/path/to/attachment.pdf)
 }
 
@@ -29,8 +28,7 @@ script:post-response {
     bru.setEnvVar("requestId", String(res.body.id));
     console.log("✅ Request created | ID:", res.body.id);
     console.log("   Requestor dept:", res.body.dept, "| Assigned to:", res.body.assignedDept);
-    console.log("   Priority:", res.body.priority, "| Days until due:", res.body.daysUntilDue);
-    console.log("   Assigned persons:", res.body.assignedPersonName || "none");
+    console.log("   Urgency Level:", res.body.priority, "| Days until due:", res.body.daysUntilDue);
   } else {
     console.log("❌ Failed:", res.body.error);
   }
@@ -42,39 +40,34 @@ docs {
   Creates a new support request (multipart/form-data).
 
   ## Fields
-  | Field               | Required | Description                                                      |
-  |---------------------|----------|------------------------------------------------------------------|
-  | purpose             | YES      | Short title for the request                                      |
-  | assignedDept        | no       | Which dept handles it (defaults to own dept)                     |
-  | description         | no       | Detailed description                                             |
-  | file                | no       | Attachment up to 10 MB                                           |
-  | dueDate             | no       | ISO date string e.g. `2026-06-01` — drives auto-priority         |
-  | assignedPersonEmpId | no       | Comma-separated empIds of specific assignees e.g. `EMP001,EMP002` |
-  | assignedPersonName  | no       | Comma-separated names matching the empIds above                  |
+  | Field        | Required | Description                                              |
+  |--------------|----------|----------------------------------------------------------|
+  | purpose      | YES      | Short title for the request                              |
+  | assignedDept | no       | Primary dept that handles it (defaults to own dept)      |
+  | assignedDepts| no       | Same as assignedDept for single selection (one dept only)|
+  | description  | no       | Detailed description                                     |
+  | file         | no       | Attachment up to 10 MB                                   |
+  | dueDate      | no       | ISO date string e.g. `2026-06-01` — drives urgency level |
 
   > `dept` is set automatically from the logged-in user's profile — never send it.
+  > Person assignment has been removed — requests go to the whole assigned dept.
 
-  ## Visibility rule when `assignedPersonEmpId` is set
-  Only the named persons **and** the DeptHOD of the assigned department can see
-  this request. All other team members of that dept are excluded.
-  If `assignedPersonEmpId` is empty/null, the entire assigned dept can see it.
+  ## Auto Urgency Level from dueDate
+  | Days until due | Urgency Level |
+  |----------------|---------------|
+  | Overdue        | Overdue       |
+  | 0 – 7          | High          |
+  | 8 – 15         | Medium        |
+  | 16 – 30        | Low           |
+  | > 30 or null   | null          |
 
-  ## Auto-priority from dueDate
-  | Days until due | Priority |
-  |----------------|----------|
-  | Overdue        | Overdue  |
-  | 0 – 7          | High     |
-  | 8 – 15         | Medium   |
-  | 16 – 30        | Low      |
-  | > 30 or null   | null     |
-
-  ## Response (new fields)
-  | Field               | Description                                        |
-  |---------------------|----------------------------------------------------|
-  | dueDate             | Formatted due date string                          |
-  | dueDateRaw          | ISO due date                                       |
-  | priority            | Computed priority: High / Medium / Low / Overdue   |
-  | daysUntilDue        | Integer days remaining (negative = overdue)        |
-  | assignedPersonEmpId | Comma-separated empIds of assigned persons         |
-  | assignedPersonName  | Comma-separated names of assigned persons          |
+  ## Response fields
+  | Field        | Description                                              |
+  |--------------|----------------------------------------------------------|
+  | dueDate      | Formatted due date string                                |
+  | dueDateRaw   | ISO due date                                             |
+  | priority     | Computed urgency level: High / Medium / Low / Overdue    |
+  | daysUntilDue | Integer days remaining (negative = overdue)              |
+  | assignedDept | Primary assigned department                              |
+  | assignedDepts| Comma-separated assigned departments (same as above)     |
 }

@@ -17,6 +17,7 @@ query {
   ~status: all
   ~assignedStatus: Open
   ~assignedStatus: Checking
+  ~assignedStatus: Pending Acknowledgement
   ~assignedStatus: Closed
   ~assignedStatus: all
   ~search: laptop
@@ -75,9 +76,10 @@ docs {
     - `open`: where `resolvedDate` is null (active)
     - `closed`: where `resolvedDate` is NOT null (resolved)
   - `assignedStatus`: Status in the assigned department
-    - `Open`: Just created
-    - `Checking`: Being reviewed
-    - `Closed`: Resolved and closed
+    - `Open`: Active / just created
+    - `Checking`: Being reviewed (see `checkingBy`, `checkingDeadline`, `checkingDaysLeft`)
+    - `Pending Acknowledgement`: DeptHOD submitted resolution, waiting for requestor to confirm
+    - `Closed`: Officially closed after requestor clicked "Received"
   - `search`: Keyword search (purpose, description, empId, name)
   - `name`: Filter by requestor name
   - `dept`: Filter by requestor's department
@@ -100,18 +102,23 @@ docs {
   }
   ```
 
-  ## New response fields per request object
-  | Field               | Description                                              |
-  |---------------------|----------------------------------------------------------|
-  | dueDate             | Formatted due date                                       |
-  | dueDateRaw          | ISO due date                                             |
-  | priority            | Auto-computed: High / Medium / Low / Overdue / null      |
-  | daysUntilDue        | Days remaining (negative = overdue)                      |
-  | assignedPersonEmpId | Comma-separated empIds of named assignees                |
-  | assignedPersonName  | Comma-separated names of named assignees                 |
-  | checkingDeadline    | ISO datetime for checking deadline                       |
-  | checkingReason      | Reason stored when status set to Checking                |
-  | checkingDaysLeft    | Days until checking deadline                             |
-  | acknowledgement     | `"Received"`, `"Not Received"`, or null                 |
-  | acknowledgedAt      | ISO datetime of acknowledgement                          |
+  ## Response fields per request object
+  | Field               | Description                                                        |
+  |---------------------|--------------------------------------------------------------------|
+  | dueDate             | Formatted due date                                                 |
+  | dueDateRaw          | ISO due date                                                       |
+  | priority            | Urgency level: High / Medium / Low / Overdue / null                |
+  | daysUntilDue        | Days remaining (negative = overdue)                                |
+  | assignedDept        | Primary assigned department                                        |
+  | assignedDepts       | Comma-separated assigned departments                               |
+  | checkingBy          | Who set Checking, e.g. `"John (DeptHOD)"`                         |
+  | checkingDeadline    | Formatted checking deadline date                                   |
+  | checkingReason      | Reason stored when status set to Checking                          |
+  | checkingDaysLeft    | Days until checking deadline (negative = overdue)                  |
+  | acknowledgement     | `"Received"` after requestor confirms, null otherwise              |
+  | acknowledgedAt      | Datetime of acknowledgement                                        |
+
+  ## Ticket lifecycle (assignedStatus values)
+  `Open` → `Checking` (optional) → `Pending Acknowledgement` → `DD/MM/YYYY (Closed)`
+  If requestor clicks **Not Received** at Pending Acknowledgement → back to `Open`.
 }

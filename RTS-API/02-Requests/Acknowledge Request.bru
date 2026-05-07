@@ -22,8 +22,12 @@ body:json {
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ Acknowledged:", res.body.acknowledgement);
-    console.log("   Acknowledged at:", res.body.acknowledgedAt);
+    if (res.body.isClosed) {
+      console.log("✅ Ticket officially closed. Acknowledged:", res.body.acknowledgement);
+    } else {
+      console.log("🔄 Ticket REOPENED — requestor reported Not Received.");
+      console.log("   Status:", res.body.assignedStatus);
+    }
   } else {
     console.log("❌", res.body.error);
   }
@@ -32,29 +36,25 @@ script:post-response {
 docs {
   # Acknowledge Request
 
-  Called by the **requestor** after their ticket has been closed, to confirm
-  whether the resolution was received or not.
+  Called by the **requestor** when their ticket is in "Pending Acknowledgement" state.
+
+  ## New behaviour
+  - **`"Received"`** → ticket is officially closed (`isClosed: true`, `assignedStatus: "DD/MM/YYYY (Closed)"`)
+  - **`"Not Received"`** → ticket is **reopened** (`isClosed: false`, `assignedStatus: "Open"`, closeTicket record deleted)
 
   ## Rules
-  - Request must already be closed (`isClosed: true`)
+  - Ticket must be in `assignedStatus: "Pending Acknowledgement"`
   - Only the original requestor (`empId` match) can call this
-  - Can only be called once (after that the status is fixed)
 
   ## Body
-  | Field  | Required | Values                        |
-  |--------|----------|-------------------------------|
+  | Field  | Required | Values                           |
+  |--------|----------|----------------------------------|
   | status | YES      | `"Received"` or `"Not Received"` |
 
-  ## Response (new fields)
-  | Field          | Description                                     |
-  |----------------|-------------------------------------------------|
-  | acknowledgement | `"Received"` or `"Not Received"`               |
-  | acknowledgedAt  | ISO datetime when the acknowledgement was made  |
-
   ## Error responses
-  | Status | Reason                                        |
-  |--------|-----------------------------------------------|
-  | 403    | Request is not closed yet                     |
-  | 403    | Caller is not the requestor                   |
-  | 404    | Request not found                             |
+  | Status | Reason                                              |
+  |--------|-----------------------------------------------------|
+  | 400    | No pending acknowledgement for this ticket          |
+  | 403    | Caller is not the requestor                         |
+  | 404    | Request not found                                   |
 }

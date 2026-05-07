@@ -26,6 +26,7 @@ body:json {
 script:post-response {
   if (res.status === 200) {
     console.log("✅ Status set to Checking");
+    console.log("   By:", res.body.checkingBy);
     console.log("   Deadline:", res.body.checkingDeadline || "none");
     console.log("   Days left:", res.body.checkingDaysLeft);
   } else {
@@ -39,6 +40,7 @@ docs {
   Sets the status to `Checking` — used when the approver needs more time or information.
   Works for RM, HOD, DeptHOD, and specifically-assigned team members.
   An approval card (type=approval, status=Checking) is auto-logged in chat.
+  The name and role of whoever clicked Checking is saved in `checkingBy`.
 
   ## Body fields
   | Field            | Required | Description                                              |
@@ -48,10 +50,11 @@ docs {
   | checkingDeadline | no       | ISO datetime by which checking will be complete          |
   | checkingReason   | no       | Reason / what is being checked                           |
 
-  ## Response (new fields)
+  ## Response fields
   | Field            | Description                                            |
   |------------------|--------------------------------------------------------|
-  | checkingDeadline | ISO datetime of the deadline                           |
+  | checkingBy       | Name and role of who set checking e.g. `"John (DeptHOD)"` |
+  | checkingDeadline | Formatted deadline date                                |
   | checkingReason   | Reason stored on the request                           |
   | checkingDaysLeft | Integer days until checkingDeadline (negative=overdue) |
 }

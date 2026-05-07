@@ -20,12 +20,13 @@ body:multipart-form {
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ Ticket closed | Status:", res.body.assignedStatus);
+    console.log("⏳ Resolution submitted | Status:", res.body.assignedStatus);
     console.log("   Resolved by:", res.body.resolvedBy);
+    console.log("   Now waiting for requestor acknowledgement.");
   } else if (res.status === 403) {
     console.log("❌ Forbidden — login as DeptHOD first");
   } else if (res.status === 409) {
-    console.log("❌ Already closed — cannot close again");
+    console.log("❌ Already closed or pending acknowledgement — cannot close again");
   } else {
     console.log("❌", res.body.error);
   }
@@ -36,12 +37,16 @@ docs {
 
   **Who can close:** DeptHOD, Management, or any team member whose dept is the `assignedDept` and is different from the requestor's dept.
 
+  ## New flow (two-step close)
+  1. DeptHOD submits resolution → ticket enters **"Pending Acknowledgement"** state
+  2. Requestor clicks **Received** → ticket is officially closed (`isClosed: true`)
+  3. Requestor clicks **Not Received** → ticket is **reopened** (`assignedStatus: "Open"`)
+
   ## What it does
-  - Sets `is_closed = true`
-  - Sets `assigned_status = "DD/MM/YYYY (Closed)"`
+  - Sets `assigned_status = "Pending Acknowledgement"` (NOT isClosed yet)
   - Sets `resolved_by` to the logged-in user's name
   - Auto-logs a 🔒 system message in the chat thread
-  - After closing, no more chat messages can be sent (403)
+  - Chat remains open so requestor can communicate if needed
 
   ## Optional fields
   | Field | Type   | Description                              |
@@ -51,7 +56,7 @@ docs {
 
   ## Error responses
   - **403** — not authorized to close (wrong role or same-dept request)
-  - **409** — ticket is already closed
+  - **409** — ticket is already closed or pending acknowledgement
 
   ## Test DeptHOD accounts
   | Email                | Password         |
