@@ -1,0 +1,74 @@
+meta {
+  name: Acknowledge - Not Received
+  type: http
+  seq: 17
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/acknowledge
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "status": "Not Received"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && !res.body.isClosed) {
+    console.log("🔄 Ticket REOPENED — requestor reported Not Received.");
+    console.log("   Status:", res.body.assignedStatus);
+    console.log("   isClosed:", res.body.isClosed);
+    console.log("   resolvedDate cleared:", res.body.resolvedDate);
+  } else if (res.status === 400) {
+    console.log("❌ Ticket is not in Pending Acknowledgement state");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — only the original requestor can acknowledge");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Acknowledge — Not Received
+
+  Called by the **requestor** to report they did NOT receive the resolution.
+  Ticket is **reopened** and goes back to the assigned department.
+
+  ## What it does
+  - Sets `isClosed = false`
+  - Sets `assignedStatus = "Open"`
+  - Clears `resolvedDate` and `resolvedBy` (null)
+  - Clears `acknowledgement` (null)
+  - Deletes the `closeTicket` record (resolution note + file removed)
+  - Logs system message: "🔄 Requestor reported not received — ticket has been reopened."
+
+  ## Rules
+  - Ticket must be in `assignedStatus: "Pending Acknowledgement"`
+  - Must be called by the original requestor (token must match request's `empId`)
+  - DeptHOD will need to re-resolve and close the ticket again
+
+  ## Response fields
+  | Field           | Value after this call  |
+  |-----------------|------------------------|
+  | isClosed        | `false`                |
+  | assignedStatus  | `"Open"`               |
+  | acknowledgement | `null`                 |
+  | resolvedDate    | `null`                 |
+  | resolvedBy      | `null`                 |
+
+  ## Error responses
+  | Status | Reason                                          |
+  |--------|-------------------------------------------------|
+  | 400    | No pending acknowledgement for this ticket      |
+  | 403    | Caller is not the original requestor            |
+  | 404    | Request not found                               |
+}
