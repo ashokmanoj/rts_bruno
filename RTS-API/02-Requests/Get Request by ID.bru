@@ -1,0 +1,69 @@
+meta {
+  name: Get Request by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/requests/{{requestId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body;
+    console.log("✅ Request found");
+    console.log("   ID:", r.id, "| Purpose:", r.purpose);
+    console.log("   Assigned Dept:", r.assignedDept, "| Status:", r.assignedStatus);
+    console.log("   isClosed:", r.isClosed);
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — run Login first");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — you do not have access to this request");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Request by ID
+
+  Returns a single request by its numeric ID.
+  Access is restricted to users who can see that request (same role/dept rules as Get All Requests).
+
+  ## URL
+  `GET /api/requests/:id`
+
+  ## Response
+  Same fields as a single item from **Get All Requests**.
+
+  | Field              | Description                                         |
+  |--------------------|-----------------------------------------------------|
+  | id                 | Request ID                                          |
+  | purpose            | Title / purpose                                     |
+  | description        | Detailed description                                |
+  | fileUrl            | First attachment URL (null if none)                 |
+  | fileUrls           | Array of all attachment URLs                        |
+  | assignedDept       | Primary assigned department                         |
+  | assignedDepts      | Comma-separated all assigned departments            |
+  | assignedStatus     | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` |
+  | isClosed           | `true` only after requestor clicks "Received"       |
+  | checkingBy         | Who set Checking, e.g. `"John (DeptHOD)"`           |
+  | acknowledgement    | `"Received"` or null                                |
+  | chatMessages       | Array of chat/system messages                       |
+  | closeData          | Resolution note + file (null if not yet closed)     |
+
+  ## Error responses
+  | Status | Reason                              |
+  |--------|-------------------------------------|
+  | 404    | Request not found                   |
+  | 403    | Caller does not have access         |
+  | 401    | Not authenticated                   |
+}
