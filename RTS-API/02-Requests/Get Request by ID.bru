@@ -14,6 +14,10 @@ auth:bearer {
   token: {{token}}
 }
 
+vars:pre-request {
+  requestId: 31
+}
+
 script:post-response {
   if (res.status === 200) {
     const r = res.body;
@@ -34,16 +38,16 @@ script:post-response {
 
 docs {
   # Get Request by ID
-
+  
   Returns a single request by its numeric ID.
   Access is restricted to users who can see that request (same role/dept rules as Get All Requests).
-
+  
   ## URL
   `GET /api/requests/:id`
-
+  
   ## Response
   Same fields as a single item from **Get All Requests**.
-
+  
   | Field              | Description                                         |
   |--------------------|-----------------------------------------------------|
   | id                 | Request ID                                          |
@@ -59,7 +63,7 @@ docs {
   | acknowledgement    | `"Received"` or null                                |
   | chatMessages       | Array of chat/system messages                       |
   | closeData          | Resolution note + file (null if not yet closed)     |
-
+  
   ## Error responses
   | Status | Reason                              |
   |--------|-------------------------------------|
