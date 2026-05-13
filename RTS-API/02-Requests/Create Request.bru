@@ -1,7 +1,7 @@
 meta {
   name: Create Request
   type: http
-  seq: 2
+  seq: 3
 }
 
 post {
@@ -20,7 +20,7 @@ body:multipart-form {
   assignedDepts: Software
   description: My current laptop is 5 years old and unable to run required software efficiently.
   ~dueDate: 2026-06-01
-  ~file: @file(/path/to/attachment.pdf)
+  ~files: @file(/path/to/attachment.pdf)
 }
 
 script:post-response {
@@ -46,7 +46,7 @@ docs {
   | assignedDept | no       | Primary dept that handles it (defaults to own dept)      |
   | assignedDepts| no       | Same as assignedDept for single selection (one dept only)|
   | description  | no       | Detailed description                                     |
-  | file         | no       | Attachment up to 10 MB                                   |
+  | files        | no       | Up to 5 attachments (each max 10 MB) — repeat field for multiple |
   | dueDate      | no       | ISO date string e.g. `2026-06-01` — drives urgency level |
 
   > `dept` is set automatically from the logged-in user's profile — never send it.
