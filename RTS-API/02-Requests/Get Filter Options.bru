@@ -14,17 +14,57 @@ auth:bearer {
   token: {{token}}
 }
 
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Filter options loaded");
+    console.log("  Names:", res.body.names?.length, "options");
+    console.log("  Depts:", res.body.depts);
+    console.log("  Assigned Depts:", res.body.assignedDepts);
+  }
+}
+
 docs {
   # Get Filter Options
 
-  Returns unique names, departments, and assigned departments available for the logged-in user to filter by.
+  Returns dynamic dropdown values for the logged-in user's visible requests.
+  Results are role-scoped — each user only sees names/depts from requests they can access.
 
   ## Response
   ```json
   {
     "names": ["John Doe", "Jane Smith"],
-    "depts": ["Academic", "Admin"],
-    "assignedDepts": ["Software", "IT"]
+    "depts": ["Academic", "Admin", "Software"],
+    "assignedDepts": ["Software", "IT", "HR"]
   }
   ```
+
+  ## Static filter values (not returned by this endpoint — use directly)
+
+  ### assignedStatus
+  | Value                    | Description                                              |
+  |--------------------------|----------------------------------------------------------|
+  | `Open`                   | Active / newly created                                   |
+  | `Checking`               | Under review — see `checkingBy`, `checkingDeadline`      |
+  | `Pending Acknowledgement`| Resolution submitted, awaiting requestor confirmation    |
+  | `Closed`                 | Officially closed after requestor confirmed receipt      |
+
+  ### priority (derived from dueDate)
+  | Value     | Condition                   |
+  |-----------|-----------------------------|
+  | `Overdue` | dueDate < today             |
+  | `High`    | dueDate within 7 days       |
+  | `Medium`  | dueDate within 8–15 days    |
+  | `Low`     | dueDate within 16–30 days   |
+
+  ### type
+  | Value      | Description                                  |
+  |------------|----------------------------------------------|
+  | `sent`     | Requests created by the logged-in user        |
+  | `received` | Requests assigned to the user's department    |
+
+  ### status (ticket lifecycle)
+  | Value    | Description                          |
+  |----------|--------------------------------------|
+  | `open`   | resolvedDate is null (still active)  |
+  | `closed` | resolvedDate is set (resolved)       |
 }

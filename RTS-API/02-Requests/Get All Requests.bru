@@ -9,27 +9,26 @@ get {
   body: none
   auth: bearer
 }
+
 query {
   page: 1
   limit: 50
   ~status: open
   ~status: closed
-  ~status: all
   ~assignedStatus: Open
   ~assignedStatus: Checking
   ~assignedStatus: Pending Acknowledgement
   ~assignedStatus: Closed
-  ~assignedStatus: all
+  ~priority: Overdue
+  ~priority: High
+  ~priority: Medium
+  ~priority: Low
   ~search: laptop
   ~name: Santhosh
-  ~name: all
   ~dept: Academic
-  ~dept: all
   ~assignedDept: Software
-  ~assignedDept: all
   ~type: sent
   ~type: received
-  ~type: all
   ~startDate: 2026-04-01
   ~endDate: 2026-04-30
 }
@@ -46,7 +45,7 @@ script:post-response {
     if (count > 0) {
       const first = requests[0];
       bru.setEnvVar("requestId", String(first.id));
-      console.log("🔖 requestId saved:", first.id, "| Purpose:", first.purpose, "| Ticket Status:", first.status, "| Assigned Status:", first.assignedStatus);
+      console.log("🔖 requestId saved:", first.id, "| Purpose:", first.purpose, "| Assigned Status:", first.assignedStatus, "| Priority:", first.priority);
     }
   } else if (res.status === 401) {
     console.log("❌ Unauthorized — run Login first");
@@ -56,7 +55,7 @@ script:post-response {
 docs {
   # Get All Requests
 
-  Returns requests filtered by the logged-in user's role and provided filters.
+  Returns paginated requests filtered by the logged-in user's role and any provided query params.
 
   ## Role-based visibility
   | Role               | Sees                                                                                    |
@@ -71,23 +70,38 @@ docs {
   - All other team members of that dept are excluded
   - If `assignedPersonEmpId` is null/empty — the entire assigned dept can see it
 
-  ## Filters
-  - `status`: Ticket lifecycle status
-    - `open`: where `resolvedDate` is null (active)
-    - `closed`: where `resolvedDate` is NOT null (resolved)
-  - `assignedStatus`: Status in the assigned department
-    - `Open`: Active / just created
-    - `Checking`: Being reviewed (see `checkingBy`, `checkingDeadline`, `checkingDaysLeft`)
-    - `Pending Acknowledgement`: DeptHOD submitted resolution, waiting for requestor to confirm
-    - `Closed`: Officially closed after requestor clicked "Received"
-  - `search`: Keyword search (purpose, description, empId, name)
-  - `name`: Filter by requestor name
-  - `dept`: Filter by requestor's department
-  - `assignedDept`: Filter by assigned department
-  - `type`: `sent` (own) / `received` (incoming to my dept)
-  - `startDate` / `endDate`: Date range (YYYY-MM-DD)
+  ## Query Parameters
 
-  ## Pagination
+  | Param           | Values                                              | Notes                                  |
+  |-----------------|-----------------------------------------------------|----------------------------------------|
+  | `page`          | integer (default 1)                                 | Pagination page number                 |
+  | `limit`         | integer (default 50)                                | Results per page                       |
+  | `status`        | `open` / `closed`                                   | Ticket lifecycle (resolvedDate null/not)|
+  | `assignedStatus`| `Open` / `Checking` / `Pending Acknowledgement` / `Closed` | Current workflow stage          |
+  | `priority`      | `Overdue` / `High` / `Medium` / `Low`               | Based on dueDate proximity             |
+  | `name`          | requestor name (partial match)                      |                                        |
+  | `dept`          | requestor's department (exact)                      |                                        |
+  | `assignedDept`  | assigned department (exact)                         |                                        |
+  | `type`          | `sent` / `received`                                 | Own vs incoming to my dept             |
+  | `search`        | keyword                                             | Searches purpose, description, empId, name |
+  | `startDate`     | YYYY-MM-DD                                          | Created date range start               |
+  | `endDate`       | YYYY-MM-DD                                          | Created date range end                 |
+
+  ## assignedStatus lifecycle
+  ```
+  Open → Checking (optional) → Pending Acknowledgement → DD/MM/YYYY (Closed)
+  ```
+  If requestor clicks **Not Received** at Pending Acknowledgement → back to `Open`.
+
+  ## priority values (derived from dueDate)
+  | Value    | Condition                          |
+  |----------|------------------------------------|
+  | Overdue  | dueDate < today                    |
+  | High     | dueDate within 7 days              |
+  | Medium   | dueDate within 8–15 days           |
+  | Low      | dueDate within 16–30 days          |
+
+  ## Pagination response shape
   ```json
   {
     "data": [...],
@@ -102,23 +116,24 @@ docs {
   }
   ```
 
-  ## Response fields per request object
-  | Field               | Description                                                        |
-  |---------------------|--------------------------------------------------------------------|
-  | dueDate             | Formatted due date                                                 |
-  | dueDateRaw          | ISO due date                                                       |
-  | priority            | Urgency level: High / Medium / Low / Overdue / null                |
-  | daysUntilDue        | Days remaining (negative = overdue)                                |
-  | assignedDept        | Primary assigned department                                        |
-  | assignedDepts       | Comma-separated assigned departments                               |
-  | checkingBy          | Who set Checking, e.g. `"John (DeptHOD)"`                         |
-  | checkingDeadline    | Formatted checking deadline date                                   |
-  | checkingReason      | Reason stored when status set to Checking                          |
-  | checkingDaysLeft    | Days until checking deadline (negative = overdue)                  |
-  | acknowledgement     | `"Received"` after requestor confirms, null otherwise              |
-  | acknowledgedAt      | Datetime of acknowledgement                                        |
-
-  ## Ticket lifecycle (assignedStatus values)
-  `Open` → `Checking` (optional) → `Pending Acknowledgement` → `DD/MM/YYYY (Closed)`
-  If requestor clicks **Not Received** at Pending Acknowledgement → back to `Open`.
+  ## Key response fields per request object
+  | Field                | Description                                                        |
+  |----------------------|--------------------------------------------------------------------|
+  | `id`                 | Request ID (saved to env as `requestId`)                          |
+  | `assignedStatus`     | Current workflow stage                                             |
+  | `priority`           | Urgency: Overdue / High / Medium / Low / null                      |
+  | `dueDate`            | Formatted due date string                                          |
+  | `dueDateRaw`         | ISO due date                                                       |
+  | `daysUntilDue`       | Days remaining (negative = overdue)                                |
+  | `checkingBy`         | Who set Checking, e.g. `"John (DeptHOD)"`                         |
+  | `checkingDeadline`   | Formatted checking deadline date                                   |
+  | `checkingReason`     | Reason stored when status set to Checking                          |
+  | `checkingDaysLeft`   | Days until checking deadline (negative = overdue)                  |
+  | `acknowledgement`    | `"Received"` / `"Not Received"` / null                            |
+  | `acknowledgedAt`     | Datetime of acknowledgement                                        |
+  | `assignedDept`       | Primary assigned department                                        |
+  | `assignedDepts`      | Comma-separated assigned departments                               |
+  | `rmStatus`           | RM approval: `--` / `Approved` / `Rejected` / `Forwarded`         |
+  | `hodStatus`          | HOD approval status                                                |
+  | `deptHodStatus`      | DeptHOD approval status                                            |
 }
