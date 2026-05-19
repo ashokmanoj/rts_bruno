@@ -1,0 +1,66 @@
+meta {
+  name: Update User
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/admin/update-user/EMP-123
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Name",
+    "email": "updated@example.com",
+    "phone": "9876543210",
+    "role": "RM",
+    "dept": "Software",
+    "designation": "Senior Developer",
+    "location": "Bangalore",
+    "rmEmpId": "GN-01",
+    "hodEmpId": "GN-1042"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ User updated:", res.body.user?.name, "| Role:", res.body.user?.role);
+  } else if (res.status === 403) {
+    console.log("❌ Access denied — Admin/SuperUser only");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Update User
+
+  Allows Admin, Management, HR DeptHOD, or SuperUser to update an existing user's profile.
+  The user's `empId` cannot be changed — it is the URL parameter.
+
+  ## URL Parameter
+  Replace `EMP-123` with the target user's `empId`.
+
+  ## Body fields (all optional — only send fields to change)
+  | Field       | Type   | Description                              |
+  |-------------|--------|------------------------------------------|
+  | name        | string | Full display name                        |
+  | email       | string | Email address (stored lowercase)         |
+  | phone       | string | Phone number                             |
+  | role        | string | One of: Requestor, RM, HOD, DeptHOD, Management, Admin, SuperUser |
+  | dept        | string | Department name                          |
+  | designation | string | Job title                                |
+  | location    | string | Office location                          |
+  | rmEmpId     | string | Reporting manager's empId (or null)      |
+  | hodEmpId    | string | HOD's empId (or null)                    |
+
+  ## Errors
+  - **403** — caller does not have admin-like access
+  - **404** — empId not found in database
+}

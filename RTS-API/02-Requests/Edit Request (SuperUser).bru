@@ -1,0 +1,61 @@
+meta {
+  name: Edit Request (SuperUser)
+  type: http
+  seq: 20
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/edit
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "purpose": "Updated purpose text",
+    "description": "Updated description with more detail.",
+    "assignedDept": "Software",
+    "assignedDepts": null,
+    "dueDate": "2026-06-30T18:00:00.000Z",
+    "assignedPersonEmpId": "GN-2001",
+    "assignedPersonName": "John Doe"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request edited | ID:", res.body.id, "| Purpose:", res.body.purpose);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — SuperUser only");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Edit Request (SuperUser only)
+
+  Allows a SuperUser to edit core fields of any request.
+  A system message is auto-logged in the chat thread after the edit.
+
+  ## Editable fields (all optional — only send what you want to change)
+  | Field                | Type     | Description                                      |
+  |----------------------|----------|--------------------------------------------------|
+  | purpose              | string   | Short summary of the request                     |
+  | description          | string   | Full description                                 |
+  | assignedDept         | string   | Primary assigned department                      |
+  | assignedDepts        | string   | Comma-separated list of departments (or null)    |
+  | dueDate              | ISO date | Due date (or null to clear)                      |
+  | assignedPersonEmpId  | string   | Assigned person's employee ID (or null to clear) |
+  | assignedPersonName   | string   | Assigned person's display name (or null to clear)|
+
+  ## Errors
+  - **403** — caller is not SuperUser
+  - **404** — request ID not found
+}
