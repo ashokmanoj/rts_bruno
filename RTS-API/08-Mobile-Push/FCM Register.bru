@@ -1,0 +1,69 @@
+meta {
+  name: FCM Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/push/fcm-register
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "token": "fcm-device-token-from-flutter-firebase-messaging"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.success) {
+    console.log("✅ FCM token registered successfully");
+  } else if (res.status === 400) {
+    console.log("❌ Validation error:", res.body.error);
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — include Bearer token");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # FCM Register (Flutter Mobile)
+
+  Registers a Firebase Cloud Messaging (FCM) device token for the authenticated user.
+  Called by the Flutter app after login and whenever the FCM token refreshes.
+
+  ## When to call (Flutter)
+  ```dart
+  // After login, get token and register:
+  final token = await FirebaseMessaging.instance.getToken();
+  await api.post('/push/fcm-register', { 'token': token });
+
+  // Also listen for token refresh:
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    api.post('/push/fcm-register', { 'token': newToken });
+  });
+  ```
+
+  ## Body fields
+  | Field | Required | Description                          |
+  |-------|----------|--------------------------------------|
+  | token | YES      | FCM registration token from Flutter  |
+
+  ## Behaviour
+  - If the token already exists the `empId` is updated (handles device reuse across accounts).
+  - Multiple devices per user are supported — each token is stored separately.
+  - Expired/invalid tokens are automatically cleaned up on the next send attempt.
+
+  ## Response
+  - `{ "success": true }`
+
+  ## Errors
+  - **400** — `token` field missing
+  - **401** — missing or invalid JWT
+}

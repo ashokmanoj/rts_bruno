@@ -1,0 +1,65 @@
+meta {
+  name: FCM Unregister
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/push/fcm-unregister
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "token": "fcm-device-token-from-flutter-firebase-messaging"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.success) {
+    console.log("✅ FCM token removed successfully");
+  } else if (res.status === 400) {
+    console.log("❌ Validation error:", res.body.error);
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — include Bearer token");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # FCM Unregister (Flutter Mobile)
+
+  Removes a Firebase Cloud Messaging (FCM) device token for the authenticated user.
+  Called by the Flutter app on logout so the device stops receiving notifications.
+
+  ## When to call (Flutter)
+  ```dart
+  // On logout, remove the token before clearing the session:
+  final token = await FirebaseMessaging.instance.getToken();
+  await api.post('/push/fcm-unregister', { 'token': token });
+  await FirebaseMessaging.instance.deleteToken();
+  // then clear local auth state
+  ```
+
+  ## Body fields
+  | Field | Required | Description                      |
+  |-------|----------|----------------------------------|
+  | token | YES      | FCM registration token to remove |
+
+  ## Behaviour
+  - Only removes the token if it belongs to the authenticated user.
+  - Silent no-op if the token does not exist.
+
+  ## Response
+  - `{ "success": true }`
+
+  ## Errors
+  - **400** — `token` field missing
+  - **401** — missing or invalid JWT
+}

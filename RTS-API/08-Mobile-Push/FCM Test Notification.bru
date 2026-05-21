@@ -1,0 +1,71 @@
+meta {
+  name: FCM Test Notification
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/push/fcm-test
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "🔔 Test Notification",
+    "body": "This is a test notification from RTS."
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.success) {
+    console.log(`✅ Notification sent to ${res.body.tokenCount} device(s)`);
+  } else if (res.status === 404) {
+    console.log("❌ No FCM tokens registered for this user — Flutter app must call /fcm-register first");
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser only");
+  } else if (res.status === 400) {
+    console.log("❌ Validation error:", res.body.error);
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # FCM Test Notification (SuperUser only)
+
+  Sends a test FCM push notification to a specific user's registered mobile devices.
+  Use this to verify the full notification pipeline end-to-end without triggering a real event.
+
+  ## Testing steps
+  1. Log into the Flutter app on a real device (emulators may not receive FCM).
+  2. Flutter calls POST /push/fcm-register with the FCM token after login.
+  3. Run this request from Bruno (logged in as SuperUser).
+  4. Notification should appear on the device within a few seconds.
+
+  ## Access
+  Any authenticated user — sends to your own devices by default.
+  SuperUser / Admin can pass `empId` to test any user's device.
+
+  ## Body fields
+  | Field | Required | Default                              | Description                              |
+  |-------|----------|--------------------------------------|------------------------------------------|
+  | empId | no       | caller's own empId                   | Target user (SuperUser/Admin only)       |
+  | title | no       | "🔔 Test Notification"               | Notification title                       |
+  | body  | no       | "This is a test notification..."     | Notification body text                   |
+
+  ## Response
+  ```json
+  { "success": true, "tokenCount": 1 }
+  ```
+  `tokenCount` tells you how many devices the notification was sent to.
+
+  ## Errors
+  - **400** — `empId` missing
+  - **403** — caller is not SuperUser
+  - **404** — user has no registered FCM tokens (Flutter hasn't called /fcm-register yet)
+}

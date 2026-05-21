@@ -1,0 +1,106 @@
+meta {
+  name: Bulk Create Users
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/admin/bulk-create-users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "users": [
+      {
+        "empId": "AI-2354",
+        "name": "Namrata Achanur",
+        "email": "ach.nam2002@gmail.com",
+        "phone": "6361336820",
+        "role": "Intern",
+        "dept": "HR",
+        "designation": "Hr-Intern",
+        "location": "Bangalore",
+        "password": "Test@123",
+        "rmEmpId": "AC-1228",
+        "hodEmpId": "AC-1228"
+      },
+      {
+        "empId": "AI-2355",
+        "name": "Ankush K A",
+        "email": "ankushsomayaji@gmail.com",
+        "phone": "9113546868",
+        "role": "Intern",
+        "dept": "Operation",
+        "designation": "Data Entry - Part Time",
+        "location": "Bangalore",
+        "password": "Test@124",
+        "rmEmpId": "",
+        "hodEmpId": ""
+      }
+    ]
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    const { created, failed } = res.body;
+    console.log(`✅ Created: ${created.length} | ❌ Failed: ${failed.length}`);
+    if (failed.length > 0) {
+      failed.forEach(f => console.log(`  ❌ ${f.empId} — ${f.reason}`));
+    }
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — Admin / HR DeptHOD / SuperUser only");
+  } else if (res.status === 400) {
+    console.log("❌ Validation error:", res.body.error);
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Bulk Create Users
+
+  Creates multiple user accounts in a single request.
+  Each user is processed individually — failures do not block the rest.
+
+  ## Access
+  Restricted to SuperUser, Admin, Management, or DeptHOD of HR.
+
+  ## Body fields
+  | Field       | Required | Description                              |
+  |-------------|----------|------------------------------------------|
+  | users       | YES      | Array of user objects (max 200)          |
+
+  ### Per-user fields
+  | Field       | Required | Default    | Description                     |
+  |-------------|----------|------------|---------------------------------|
+  | empId       | YES      | —          | Unique employee ID (e.g. AI-001)|
+  | name        | YES      | —          | Full name                       |
+  | email       | YES      | —          | Must be unique                  |
+  | password    | YES      | —          | Temporary password              |
+  | phone       | no       | —          | Mobile number                   |
+  | role        | no       | Requestor  | Role enum value                 |
+  | dept        | no       | HR         | Department name                 |
+  | designation | no       | —          | Job title                       |
+  | location    | no       | —          | Office location                 |
+  | rmEmpId     | no       | —          | Reporting Manager empId         |
+  | hodEmpId    | no       | —          | HOD empId                       |
+
+  ## Response
+  ```json
+  {
+    "created": [{ "empId": "AI-001", "name": "John Doe" }],
+    "failed":  [{ "empId": "AI-002", "name": "Jane", "reason": "User with this Employee ID or Email already exists." }]
+  }
+  ```
+
+  ## Errors
+  - **400** — `users` array missing, empty, or exceeds 200 items
+  - **403** — caller lacks admin-level access
+}
