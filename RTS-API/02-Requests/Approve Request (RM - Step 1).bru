@@ -38,12 +38,17 @@ docs {
   Sets `rm_status` on the request and auto-logs an approval card in chat.
 
   ## Valid decisions
-  | Decision  | Effect                                     |
-  |-----------|--------------------------------------------|
-  | Approved  | Sets rm_status = Approved                  |
-  | Rejected  | Sets rm_status = Rejected                  |
-  | Checking  | Sets rm_status = Checking (needs more info)|
-  | Forwarded | Changes assigned_dept — requires newDept   |
+  | Decision  | Effect                                          |
+  |-----------|-------------------------------------------------|
+  | Approved  | Sets rm_status = Approved                       |
+  | Rejected  | Sets rm_status = Rejected                       |
+  | Checking  | Sets rm_status = Checking (needs more info)     |
+  | Forwarded | Changes assigned_dept — requires newDept field  |
+
+  ## Dept-scoped visibility (multi-role users)
+  If the same empId holds RM roles in multiple departments, the JWT `dept` field
+  determines which dept's data is visible. Logging in as RM-Software shows only
+  Software team requests; logging in as RM-Academic shows only Academic team requests.
 
   ## Test RM accounts
   | Email                    | Password   | Dept     |

@@ -17,13 +17,16 @@ auth:bearer {
 body:json {
   {
     "decision": "Approved",
-    "comment": "Final approval granted by Dept HOD. Proceed with fulfilment."
+    "comment": "Approved & assigned to internal team.",
+    "assignedPersonEmpId": "EMP-101,EMP-102",
+    "assignedPersonName": "John Doe,Jane Smith"
   }
 }
 
 script:post-response {
   if (res.status === 200) {
     console.log("✅ DeptHOD decision recorded:", res.body.deptHodStatus, "on", res.body.deptHodDate);
+    if (res.body.assignedPersonName) console.log("   Assigned to:", res.body.assignedPersonName);
   } else if (res.status === 403) {
     console.log("❌ Forbidden — login as DeptHOD first");
   } else {
@@ -35,21 +38,59 @@ docs {
   # Approve Request — Step 3 (DeptHOD)
 
   **Login as a DeptHOD** before calling this endpoint.
-  Sets `dept_hod_status`. After this step the Dept HOD can also close the ticket.
+  DeptHOD has two approval modes triggered from the popup in the UI:
 
-  ## Test DeptHOD accounts (email = dept@rts.com / password = Dept@123)
-  | Email                        | Password             |
-  |------------------------------|----------------------|
-  | academic@rts.com             | Academic@123         |
-  | software@rts.com             | Software@123         |
-  | operation@rts.com            | Operation@123        |
-  | animation@rts.com            | Animation@123        |
-  | accounts@rts.com             | Accounts@123         |
-  | hr@rts.com                   | Hr@123               |
-  | broadcasting@rts.com         | Broadcasting@123     |
-  | technicalsupport@rts.com     | Technicalsupport@123 |
-  | store@rts.com                | Store@123            |
-  | purchase@rts.com             | Purchase@123         |
-  | management@rts.com           | Management@123       |
-  | marketing@rts.com            | Marketing@123        |
+  ---
+
+  ## Mode 1 — Approve & Assign Internal
+  Approves the request and assigns it to one or more people within the DeptHOD's own department.
+  Those assigned persons can view and close the ticket.
+
+  ```json
+  {
+    "decision": "Approved",
+    "comment": "Assigned to internal team.",
+    "assignedPersonEmpId": "EMP-101,EMP-102",
+    "assignedPersonName": "John Doe,Jane Smith"
+  }
+  ```
+
+  | Field               | Required | Description                                      |
+  |---------------------|----------|--------------------------------------------------|
+  | decision            | YES      | `"Approved"`                                     |
+  | assignedPersonEmpId | YES      | Comma-separated empIds of assignees              |
+  | assignedPersonName  | no       | Comma-separated names (display only)             |
+  | comment             | no       | Optional note shown in chat                      |
+
+  ---
+
+  ## Mode 2 — Approve & Forward Dept
+  Approves the request AND forwards it to another department.
+  Both the original dept and the new dept can see the request (`assignedDepts` updated).
+  Two chat messages are created: one `Approved` + one `Forwarded`.
+  Sets `deptHodStatus = "Approved"` automatically.
+
+  ```json
+  {
+    "decision": "Forwarded",
+    "comment": "Approved and forwarded for fulfilment.",
+    "newDept": "Software",
+    "dualDept": true
+  }
+  ```
+
+  | Field    | Required | Description                                              |
+  |----------|----------|----------------------------------------------------------|
+  | decision | YES      | `"Forwarded"`                                            |
+  | newDept  | YES      | Target department name                                   |
+  | dualDept | YES      | Must be `true` — enables dual-dept visibility + auto-approve |
+  | comment  | no       | Optional note shown in chat                              |
+
+  ---
+
+  ## Valid department names
+  Academic, Accounts-A, Accounts-G, Animation, Broadcasting, Business Development,
+  Corporate Communications, Documentation, Facilities, Food Committee, Game Development,
+  Govt. Relations, HR, Management, Marketing, Operation, Purchase, RTS Help Desk,
+  Software, Store, System admin, TA Committee, Technical Support
 }

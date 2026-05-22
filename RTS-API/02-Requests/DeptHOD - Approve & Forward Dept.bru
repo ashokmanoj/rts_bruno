@@ -1,0 +1,68 @@
+meta {
+  name: DeptHOD - Approve & Forward Dept
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Forwarded",
+    "comment": "Approved and forwarded to Software for technical fulfilment.",
+    "newDept": "Software",
+    "dualDept": true
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Approved & forwarded");
+    console.log("   deptHodStatus:", res.body.deptHodStatus);
+    console.log("   assignedDept:", res.body.assignedDept);
+    console.log("   assignedDepts:", res.body.assignedDepts);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as DeptHOD first");
+  } else if (res.status === 400) {
+    console.log("❌ Bad request — make sure newDept is set:", res.body.error);
+  } else {
+    console.log("❌ Error:", res.body.error);
+  }
+}
+
+docs {
+  # DeptHOD — Approve & Forward Dept
+
+  **Login as a DeptHOD** before calling this endpoint.
+
+  Approves the request AND forwards it to another department.
+  Both the original dept and the new dept can see the request (dual-dept visibility).
+
+  ## What happens
+  - Sets `deptHodStatus = "Approved"` automatically
+  - Sets `assignedDept = newDept` (primary assigned dept changes)
+  - Appends both depts to `assignedDepts` (comma-separated) — both depts see the request
+  - Creates **two** chat messages: one `Approved` + one `Forwarded`
+
+  ## Body fields
+  | Field    | Required | Description                                              |
+  |----------|----------|----------------------------------------------------------|
+  | decision | YES      | Must be `"Forwarded"`                                    |
+  | newDept  | YES      | Target department name                                   |
+  | dualDept | YES      | Must be `true` — enables dual-dept visibility + auto-approve |
+  | comment  | no       | Optional note shown in chat (used for the Approved message) |
+
+  ## Valid department names
+  Academic, Accounts-A, Accounts-G, Animation, Broadcasting, Business Development,
+  Corporate Communications, Documentation, Facilities, Food Committee, Game Development,
+  Govt. Relations, HR, Management, Marketing, Operation, Purchase, RTS Help Desk,
+  Software, Store, System admin, TA Committee, Technical Support
+}

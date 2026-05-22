@@ -58,17 +58,24 @@ docs {
   Returns paginated requests filtered by the logged-in user's role and any provided query params.
 
   ## Role-based visibility
-  | Role               | Sees                                                                                    |
-  |--------------------|-----------------------------------------------------------------------------------------|
-  | Admin / Management | All requests                                                                            |
-  | RM / HOD / DeptHOD | Own requests + all requests in their dept (requestor's OR assigned dept)               |
-  | Regular staff      | Own requests + dept-wide requests (no specific assignee) + requests assigned to them   |
+  | Role                    | Sees                                                                                                  |
+  |-------------------------|-------------------------------------------------------------------------------------------------------|
+  | SuperUser / Admin / Management | All requests                                                                               |
+  | DeptHOD                 | Own requests + all requests in their dept (requestor OR assigned) + dual-assigned depts               |
+  | RM / HOD                | Own requests + team members' requests (same dept only) + incoming to their dept + dual-assigned depts |
+  | Regular staff (most)    | Own requests + incoming requests assigned to their dept (no specific assignee) + assigned to them     |
+  | Academic / Animation / Software requestors | Own requests + requests specifically assigned to them only                  |
+
+  ### Multi-role users (single empId, multiple roles)
+  When a user has multiple roles (e.g. RM-Software + HOD-Academic), the JWT contains the **selected role + dept**.
+  Each login session is fully isolated — logging in as RM-Software shows only Software data,
+  logging in as HOD-Academic shows only Academic data.
 
   ### Person-assignment visibility rule
   When a request has `assignedPersonEmpId` set (specific persons named):
-  - Only the **named persons** and the **DeptHOD** of the assigned dept can see it
+  - Only the **named persons** can see it (plus RM/HOD/DeptHOD of assigned dept)
   - All other team members of that dept are excluded
-  - If `assignedPersonEmpId` is null/empty — the entire assigned dept can see it
+  - If `assignedPersonEmpId` is null/empty — the entire assigned dept can see it (except Academic/Animation/Software)
 
   ## Query Parameters
 
