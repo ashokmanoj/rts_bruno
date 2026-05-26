@@ -31,18 +31,7 @@ Complete API test collection for the RTS (Request Tracking System) backend.
 | Environment            | URL                          |
 |------------------------|------------------------------|
 | Local                  | http://localhost:5000/api     |
-| Network (192.168.1.128)| http://192.168.1.228:5000/api |
+| Network (xxxx.xxx.1.xxx)| http://xxxx.xxx.1.yyy:5000/ |
 | Production             | https://your-backend.com/api  |
 
-## Credentials quick reference
 
-| Role      | Email                         | Password             |
-|-----------|-------------------------------|----------------------|
-| Requestor | santhosh.sm9@gmail.com        | Santhosh@123         |
-| RM        | kadakkath@gmail.com           | Anil@123             |
-| HOD       | bhatraveendrabeegar@gmail.com | Raveendra@123        |
-| DeptHOD   | software@rts.com              | Software@123         |
-| DeptHOD   | operation@rts.com             | Operation@123        |
-| Admin     | admin@rts.com                 | Admin@123            |
-
-Full credentials list: see Login.bru docs tab
