@@ -1,0 +1,89 @@
+meta {
+  name: Acknowledge Received
+  type: http
+  seq: 15
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/acknowledge
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "status": "Received"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    if (res.body.isClosed) {
+      console.log("✅ Ticket officially CLOSED.");
+      console.log("   acknowledgement:", res.body.acknowledgement);
+      console.log("   assignedStatus:", res.body.assignedStatus);
+      console.log("   acknowledgedAt:", res.body.acknowledgedAt);
+    } else {
+      console.log("🔄 Ticket REOPENED — requestor reported Not Received.");
+      console.log("   assignedStatus:", res.body.assignedStatus);
+      console.log("   isClosed:", res.body.isClosed);
+    }
+  } else if (res.status === 400) {
+    console.log("❌ Ticket is not in Pending Acknowledgement state");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — only the original requestor can acknowledge");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Acknowledge Request
+
+  Called by the **requestor** when their ticket is in `"Pending Acknowledgement"` state.
+  Change the `status` field in the body to switch between the two outcomes.
+
+  ## Body
+  | Field    | Required | Values                           |
+  |----------|----------|----------------------------------|
+  | `status` | yes      | `"Received"` or `"Not Received"` |
+
+  ## Outcomes
+
+  ### status: "Received" → ticket officially closed
+  | Field           | Value set                      |
+  |-----------------|-------------------------------|
+  | `isClosed`      | `true`                        |
+  | `assignedStatus`| `"DD/MM/YYYY (Closed)"`       |
+  | `acknowledgement`| `"Received"`                 |
+  | `acknowledgedAt`| current datetime              |
+
+  ### status: "Not Received" → ticket reopened
+  | Field           | Value set   |
+  |-----------------|-------------|
+  | `isClosed`      | `false`     |
+  | `assignedStatus`| `"Open"`    |
+  | `acknowledgement`| `null`     |
+  | `resolvedDate`  | `null`      |
+  | `resolvedBy`    | `null`      |
+
+  The `closeTicket` record (resolution note + file) is also deleted when reopened.
+  DeptHOD will need to resolve and close the ticket again.
+
+  ## Rules
+  - Ticket must be in `assignedStatus: "Pending Acknowledgement"`
+  - Only the original requestor (`empId` match) can call this
+
+  ## Error responses
+  | Status | Reason                                      |
+  |--------|---------------------------------------------|
+  | 400    | Ticket not in Pending Acknowledgement state |
+  | 403    | Caller is not the original requestor        |
+  | 404    | Request not found                           |
+}

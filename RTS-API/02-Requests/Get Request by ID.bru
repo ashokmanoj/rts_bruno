@@ -24,7 +24,7 @@ script:post-response {
     console.log("✅ Request found");
     console.log("   ID:", r.id, "| Purpose:", r.purpose);
     console.log("   Assigned Dept:", r.assignedDept, "| Status:", r.assignedStatus);
-    console.log("   isClosed:", r.isClosed);
+    console.log("   isClosed:", r.isClosed, "| seen:", r.seen);
   } else if (res.status === 404) {
     console.log("❌ Request not found — check requestId env var");
   } else if (res.status === 401) {
@@ -38,32 +38,47 @@ script:post-response {
 
 docs {
   # Get Request by ID
-  
+
   Returns a single request by its numeric ID.
   Access is restricted to users who can see that request (same role/dept rules as Get All Requests).
-  
+
   ## URL
   `GET /api/requests/:id`
-  
-  ## Response
-  Same fields as a single item from **Get All Requests**.
-  
-  | Field              | Description                                         |
-  |--------------------|-----------------------------------------------------|
-  | id                 | Request ID                                          |
-  | purpose            | Title / purpose                                     |
-  | description        | Detailed description                                |
-  | fileUrl            | First attachment URL (null if none)                 |
-  | fileUrls           | Array of all attachment URLs                        |
-  | assignedDept       | Primary assigned department                         |
-  | assignedDepts      | Comma-separated all assigned departments            |
-  | assignedStatus     | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` |
-  | isClosed           | `true` only after requestor clicks "Received"       |
-  | checkingBy         | Who set Checking, e.g. `"John (DeptHOD)"`           |
-  | acknowledgement    | `"Received"` or null                                |
-  | chatMessages       | Array of chat/system messages                       |
-  | closeData          | Resolution note + file (null if not yet closed)     |
-  
+
+  ## Push Notification Deep Link
+  When a new-request push notification is tapped on mobile or web, the app is opened with:
+  ```
+  /?openRequest=<id>
+  ```
+  The frontend reads `openRequest` from the URL, calls this endpoint, and opens the details modal directly.
+  The mobile app should read the `requestId` or `deepLink` field from the FCM data payload and navigate accordingly.
+
+  ## FCM data payload fields (for mobile deep link)
+  | Field       | Example value                                      | Notes                              |
+  |-------------|----------------------------------------------------|------------------------------------|
+  | `requestId` | `"232"`                                            | Use to navigate to the request     |
+  | `deepLink`  | `"http://192.168.1.128:5173/?openRequest=232"`     | Full URL — open in WebView or browser |
+  | `url`       | `"/?openRequest=232"`                              | Relative URL (web push / sw.js)    |
+  | `type`      | `"new_request"`                                    | Notification category              |
+
+  ## Response fields
+  | Field              | Description                                                                 |
+  |--------------------|-----------------------------------------------------------------------------|
+  | `id`               | Request ID                                                                  |
+  | `purpose`          | Title / purpose                                                             |
+  | `description`      | Detailed description                                                        |
+  | `seen`             | `true` if the calling user has opened this request                          |
+  | `fileUrl`          | First attachment URL (null if none)                                         |
+  | `fileUrls`         | Array of all attachment URLs                                                |
+  | `assignedDept`     | Primary assigned department                                                 |
+  | `assignedDepts`    | Comma-separated all assigned departments                                    |
+  | `assignedStatus`   | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` / `Rejected (Closed)` |
+  | `isClosed`         | `true` when closed (Received acknowledgement OR rejected by approver)       |
+  | `checkingBy`       | Who set Checking, e.g. `"John (DeptHOD)"`                                  |
+  | `acknowledgement`  | `"Received"` / `"Not Received"` / null                                      |
+  | `chatMessages`     | Array of chat/approval/system messages                                      |
+  | `closeData`        | Resolution note + file (null if not yet closed)                             |
+
   ## Error responses
   | Status | Reason                              |
   |--------|-------------------------------------|

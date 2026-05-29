@@ -23,7 +23,13 @@ body:json {
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ Request rejected by", res.body.rmStatus !== "--" ? "RM" : res.body.hodStatus !== "--" ? "HOD" : "DeptHOD");
+    const r = res.body;
+    const who = r.rmStatus === "Rejected" ? "RM" : r.hodStatus === "Rejected" ? "HOD" : "DeptHOD";
+    console.log("✅ Request rejected by", who);
+    console.log("   isClosed:", r.isClosed, "| assignedStatus:", r.assignedStatus);
+    if (r.isClosed) {
+      console.log("🔒 Ticket auto-closed — resolvedBy:", r.resolvedBy);
+    }
   } else {
     console.log("❌", res.body.error);
   }
@@ -34,5 +40,34 @@ docs {
 
   Works for **RM (Step 1), HOD (Step 2), or DeptHOD (Step 3)**.
   The backend sets the correct status field based on the logged-in user's role.
-  An rejection card is auto-logged in chat.
+  A rejection card is auto-logged in chat.
+
+  ## Auto-close on Reject
+  When any approver (RM / HOD / DeptHOD / Management) rejects a request, the ticket is **immediately and automatically closed**:
+
+  | Field            | Value set                      |
+  |------------------|-------------------------------|
+  | `isClosed`       | `true`                        |
+  | `resolvedDate`   | current timestamp             |
+  | `resolvedBy`     | `"<Name> (<Role>)"`           |
+  | `assignedStatus` | `"Rejected (Closed)"`         |
+
+  All action buttons in the UI are disabled once the ticket is closed.
+
+  ## UI button behaviour after each action
+  | Approver action  | Approve btn | Checking btn | Reject btn |
+  |------------------|-------------|--------------|------------|
+  | No action yet    | ✅ shown    | ✅ shown     | ✅ shown   |
+  | Checking clicked | ✅ shown    | ❌ hidden    | ✅ shown   |
+  | Approved         | ✅ shown    | ❌ hidden    | ❌ hidden  |
+  | Rejected         | ❌ (ticket closed — section hidden) | ❌ | ❌ |
+
+  ## Body
+  | Field      | Required | Description                              |
+  |------------|----------|------------------------------------------|
+  | `decision` | yes      | Must be `"Rejected"`                     |
+  | `comment`  | no       | Optional rejection reason shown in chat  |
+
+  ## Response
+  Same shape as Get Request by ID — includes updated `isClosed`, `assignedStatus`, `resolvedBy`, and the rejector's status field.
 }

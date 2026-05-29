@@ -46,6 +46,7 @@ docs {
   2. Flutter calls POST /push/fcm-register with the FCM token after login.
   3. Run this request from Bruno (logged in as SuperUser).
   4. Notification should appear on the device within a few seconds.
+  5. Tap the notification — the app should open request details directly (deep link).
 
   ## Access
   Any authenticated user — sends to your own devices by default.
@@ -57,6 +58,31 @@ docs {
   | empId | no       | caller's own empId                   | Target user (SuperUser/Admin only)       |
   | title | no       | "🔔 Test Notification"               | Notification title                       |
   | body  | no       | "This is a test notification..."     | Notification body text                   |
+
+  ## FCM data payload received by mobile app
+  All new-request notifications include these fields in the FCM `data` map:
+
+  | Field        | Type   | Example value                                          | Notes                                    |
+  |--------------|--------|--------------------------------------------------------|------------------------------------------|
+  | `type`       | string | `"new_request"`                                        | Notification category                    |
+  | `requestId`  | string | `"232"`                                                | Parse to int, navigate to this request   |
+  | `deepLink`   | string | `"http://192.168.1.128:5173/?openRequest=232"`         | Full URL for WebView or in-app browser   |
+  | `url`        | string | `"/?openRequest=232"`                                  | Relative URL (used by web service worker)|
+  | `tag`        | string | `"request-232"`                                        | Notification dedup tag                   |
+  | `action`     | string | `"new_request"`                                        | Action identifier                        |
+  | `channel_id` | string | `"new_request_channel"`                                | Android notification channel             |
+
+  ## Deep link handling (Flutter)
+  On notification tap, read `data['requestId']` and navigate to the request detail screen:
+  ```dart
+  final requestId = int.tryParse(message.data['requestId'] ?? '');
+  if (requestId != null) {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => RequestDetailScreen(requestId: requestId),
+    ));
+  }
+  ```
+  Alternatively use `data['deepLink']` to open via in-app WebView.
 
   ## Response
   ```json

@@ -13,6 +13,10 @@ get {
 query {
   page: 1
   limit: 50
+  ~sortOrder: desc
+  ~sortOrder: asc
+  ~unread: true
+  ~latest: true
   ~status: open
   ~status: closed
   ~assignedStatus: Open
@@ -79,26 +83,39 @@ docs {
 
   ## Query Parameters
 
-  | Param           | Values                                              | Notes                                  |
-  |-----------------|-----------------------------------------------------|----------------------------------------|
-  | `page`          | integer (default 1)                                 | Pagination page number                 |
-  | `limit`         | integer (default 50)                                | Results per page                       |
-  | `status`        | `open` / `closed`                                   | Ticket lifecycle (resolvedDate null/not)|
-  | `assignedStatus`| `Open` / `Checking` / `Pending Acknowledgement` / `Closed` | Current workflow stage          |
-  | `priority`      | `Overdue` / `High` / `Medium` / `Low`               | Based on dueDate proximity             |
-  | `name`          | requestor name (partial match)                      |                                        |
-  | `dept`          | requestor's department (exact)                      |                                        |
-  | `assignedDept`  | assigned department (exact)                         |                                        |
-  | `type`          | `sent` / `received`                                 | Own vs incoming to my dept             |
-  | `search`        | keyword                                             | Searches purpose, description, empId, name |
-  | `startDate`     | YYYY-MM-DD                                          | Created date range start               |
-  | `endDate`       | YYYY-MM-DD                                          | Created date range end                 |
+  | Param           | Values                                              | Notes                                          |
+  |-----------------|-----------------------------------------------------|------------------------------------------------|
+  | `page`          | integer (default 1)                                 | Pagination page number                         |
+  | `limit`         | integer (default 50)                                | Results per page                               |
+  | `sortOrder`     | `desc` (default) / `asc`                            | Sort by `createdAt` newest-first or oldest-first |
+  | `unread`        | `true`                                              | Only tickets the caller hasn't opened yet      |
+  | `latest`        | `true`                                              | Only tickets with activity in last 7 days      |
+  | `status`        | `open` / `closed`                                   | Ticket lifecycle (resolvedDate null/not)       |
+  | `assignedStatus`| `Open` / `Checking` / `Pending Acknowledgement` / `Closed` | Current workflow stage                  |
+  | `priority`      | `Overdue` / `High` / `Medium` / `Low`               | Based on dueDate proximity                     |
+  | `name`          | requestor name (partial match, comma-separated)     |                                                |
+  | `dept`          | requestor's department (exact, comma-separated)     |                                                |
+  | `assignedDept`  | assigned department (exact, comma-separated)        |                                                |
+  | `type`          | `sent` / `received`                                 | Own vs incoming to my dept                     |
+  | `search`        | keyword                                             | Searches purpose, description, empId, name     |
+  | `startDate`     | YYYY-MM-DD                                          | Created date range start                       |
+  | `endDate`       | YYYY-MM-DD                                          | Created date range end                         |
+
+  ### unread filter
+  Returns only requests where the calling user has **no read receipt** — i.e. tickets they have never opened.
+  Uses: `readReceipts: { none: { empId } }`
+
+  ### latest filter
+  Returns requests with any activity (createdAt, rmDate, hodDate, deptHodDate, forwardedAt, resolvedDate) within the **last 7 days**.
 
   ## assignedStatus lifecycle
   ```
   Open → Checking (optional) → Pending Acknowledgement → DD/MM/YYYY (Closed)
+                                                       ↑
+                              Rejected by RM/HOD/DeptHOD → Rejected (Closed)
   ```
   If requestor clicks **Not Received** at Pending Acknowledgement → back to `Open`.
+  If RM/HOD/DeptHOD **Rejects** → ticket is immediately closed (`assignedStatus = "Rejected (Closed)"`).
 
   ## priority values (derived from dueDate)
   | Value    | Condition                          |
@@ -127,7 +144,9 @@ docs {
   | Field                | Description                                                        |
   |----------------------|--------------------------------------------------------------------|
   | `id`                 | Request ID (saved to env as `requestId`)                          |
+  | `seen`               | `true` if the calling user has opened this request                 |
   | `assignedStatus`     | Current workflow stage                                             |
+  | `isClosed`           | `true` when ticket is closed (Received or Rejected)                |
   | `priority`           | Urgency: Overdue / High / Medium / Low / null                      |
   | `dueDate`            | Formatted due date string                                          |
   | `dueDateRaw`         | ISO due date                                                       |
