@@ -42,9 +42,22 @@ docs {
 
   **`newDept` is required** when decision is `Forwarded`.
 
+  ## After forwarding — action button behaviour
+  Once forwarded, the `assignedDept` changes to `newDept`.
+  - **Original dept users** (RM / HOD / DeptHOD / team members): all action buttons are hidden — they can view data only.
+  - **New dept users** (`newDept`): full action buttons (Approve / Checking / Reject / Close Ticket) are shown.
+  This rule applies to every role including the user who forwarded — they cannot act again on the same request.
+
   ## Valid department names
-  Academic, Accounts-A, Accounts-G, Animation, Broadcasting, Business Development,
-  Corporate Communications, Documentation, Facilities, Food Committee, Game Development,
-  Govt. Relations, HR, Management, Marketing, Operation, Purchase, RTS Help Desk,
-  Software, Store, System admin, TA Committee, Technical Support
+  Academics-Assam, Academics-Karnataka, Academics-Tripura, Academics-Uttarakhand,
+  Accounts-A, Accounts-G, Animation,
+  Broadcasting-Assam, Broadcasting-Karnataka, Broadcasting-Tripura, Broadcasting-Uttarakhand,
+  Business Development, Corporate Communications, Documentation, Facilities, Food Committee,
+  Game Development, Govt. Relations, HR, Management, Marketing,
+  Operations-Assam, Operations-Bihar, Operations-Karnataka, Operations-Maharashtra,
+  Operations-Mizoram, Operations-Nagaland, Operations-Tripura, Operations-Uttarakhand,
+  Purchase, RTS Help Desk, Software,
+  Stores-Assam, Stores-Karnataka, Stores-Mizoram, Stores-Tripura,
+  System Admin-Assam, System Admin-Karnataka, System Admin-Uttarakhand,
+  TA Committee, Technical Support
 }

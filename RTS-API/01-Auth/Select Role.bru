@@ -17,7 +17,7 @@ auth:bearer {
 body:json {
   {
     "role": "Requestor",
-    "dept": "Broadcasting"
+    "dept": "Broadcasting-Assam"
   }
 }
 
@@ -41,11 +41,17 @@ docs {
   2. Call this request with the chosen `role` + `dept` from `availableRoles`
   3. Full JWT is returned and **auto-saved** to `{{token}}`
 
+  ## UI flow (2-step role selection)
+  The login page now shows a **category first** (Requestor / Reporting Manager / HOD / Department HOD),
+  then after clicking a category with multiple departments, shows the department list.
+  Single-dept categories log in directly without a second step.
+
   ## Request body
   ```json
-  { "role": "Requestor", "dept": "Broadcasting" }
+  { "role": "Requestor", "dept": "Broadcasting-Assam" }
   ```
-  Replace with any pair from the `availableRoles` list returned by Login.
+  Replace with any `{ role, dept }` pair from the `availableRoles` list returned by Login.
+  All dept names now use state-specific format e.g. `"Operations-Assam"`, `"Broadcasting-Karnataka"`.
 
   ## Authorization
   Uses `{{tempToken}}` (10-minute short-lived token). If it expires, call Login again.

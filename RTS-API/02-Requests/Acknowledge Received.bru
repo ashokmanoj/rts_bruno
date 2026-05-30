@@ -64,17 +64,27 @@ docs {
   | `acknowledgement`| `"Received"`                 |
   | `acknowledgedAt`| current datetime              |
 
-  ### status: "Not Received" → ticket reopened
-  | Field           | Value set   |
-  |-----------------|-------------|
-  | `isClosed`      | `false`     |
-  | `assignedStatus`| `"Open"`    |
-  | `acknowledgement`| `null`     |
-  | `resolvedDate`  | `null`      |
-  | `resolvedBy`    | `null`      |
+  ### status: "Not Received" → ticket fully reopened for fresh approval
+  | Field            | Value set   |
+  |------------------|-------------|
+  | `isClosed`       | `false`     |
+  | `assignedStatus` | `"Open"`    |
+  | `acknowledgement`| `null`      |
+  | `resolvedDate`   | `null`      |
+  | `resolvedBy`     | `null`      |
+  | `rmStatus`       | `"--"`      |
+  | `rmDate`         | `null`      |
+  | `hodStatus`      | `"--"`      |
+  | `hodDate`        | `null`      |
+  | `deptHodStatus`  | `"--"`      |
+  | `deptHodDate`    | `null`      |
+  | `checkingBy`     | `null`      |
+  | `checkingDeadline`| `null`     |
+  | `checkingReason` | `null`      |
 
-  The `closeTicket` record (resolution note + file) is also deleted when reopened.
-  DeptHOD will need to resolve and close the ticket again.
+  **Chat messages are NOT deleted** — full approval history is preserved in the chat timeline.
+  The `closeTicket` record (resolution note + file) is deleted.
+  All approval action buttons (Approve / Checking / Reject) become active again for RM, HOD, and DeptHOD.
 
   ## Rules
   - Ticket must be in `assignedStatus: "Pending Acknowledgement"`

@@ -17,7 +17,7 @@ auth:bearer {
 body:json {
   {
     "role": "RM",
-    "dept": "Operation"
+    "dept": "Operations-Assam"
   }
 }
 
@@ -41,11 +41,17 @@ docs {
   - User is logged in (has a valid `{{token}}`)
   - They want to change their active role (e.g. from Requestor → RM)
 
+  ## UI flow (2-step switch in dashboard)
+  The profile dropdown Switch Role panel now shows role **categories** first
+  (Requestor / Reporting Manager / HOD / Department HOD). Clicking a category
+  with multiple departments drills into a department list. Single-dept categories switch directly.
+
   ## Request body
   ```json
-  { "role": "RM", "dept": "Operation" }
+  { "role": "RM", "dept": "Operations-Assam" }
   ```
   The role/dept must be one assigned to this user in the `user_roles` table.
+  All dept names use state-specific format e.g. `"Operations-Assam"`, `"Broadcasting-Karnataka"`.
 
   ## Response
   Returns a new `token` + updated `user` object. New token is **auto-saved** to `{{token}}`.
