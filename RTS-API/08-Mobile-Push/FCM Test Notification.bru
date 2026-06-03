@@ -65,7 +65,7 @@ docs {
   | Field        | Type   | Example value                                          | Notes                                    |
   |--------------|--------|--------------------------------------------------------|------------------------------------------|
   | `type`       | string | `"new_request"`                                        | Notification category                    |
-  | `requestId`  | string | `"232"`                                                | Parse to int, navigate to this request   |
+  | `request_id` | string | `"232"`                                                | Parse to int, navigate to this request   |
   | `deepLink`   | string | `"http://192.168.1.128:5173/?openRequest=232"`         | Full URL for WebView or in-app browser   |
   | `url`        | string | `"/?openRequest=232"`                                  | Relative URL (used by web service worker)|
   | `tag`        | string | `"request-232"`                                        | Notification dedup tag                   |
@@ -73,9 +73,9 @@ docs {
   | `channel_id` | string | `"new_request_channel"`                                | Android notification channel             |
 
   ## Deep link handling (Flutter)
-  On notification tap, read `data['requestId']` and navigate to the request detail screen:
+  On notification tap, read `data['request_id']` and navigate to the request detail screen:
   ```dart
-  final requestId = int.tryParse(message.data['requestId'] ?? '');
+  final requestId = int.tryParse(message.data['request_id'] ?? '');
   if (requestId != null) {
     Navigator.push(context, MaterialPageRoute(
       builder: (_) => RequestDetailScreen(requestId: requestId),
