@@ -21,7 +21,7 @@ auth:bearer {
 script:post-response {
   if (res.status === 200) {
     console.log("✅ Got", res.body.length, "user(s)");
-    res.body.forEach(u => console.log("  ", u.empId, u.name, "-", u.dept, "(", u.role, ")"));
+    res.body.forEach(u => console.log("  ", u.empId, u.name, "-", u.dept, "(", u.role, ") roles:", u.roles?.length));
   } else {
     console.log("❌", res.body.error);
   }
@@ -31,7 +31,7 @@ docs {
   # Get Users by Dept
 
   Returns active employees in the specified department(s).
-  Used by the Add Request modal to populate the person-assignment picker.
+  Used by the Add Request modal and Forward/Internal-assign flows to populate user pickers.
 
   ## Query params
   | Param | Required | Description                                                |
@@ -47,7 +47,11 @@ docs {
       "name": "Alice Kumar",
       "dept": "Software",
       "designation": "Software Engineer",
-      "role": "Requestor"
+      "role": "Requestor",
+      "roles": [
+        { "role": "Requestor", "dept": "Software" },
+        { "role": "RM",        "dept": "Software" }
+      ]
     }
   ]
   ```
@@ -55,5 +59,7 @@ docs {
   ## Notes
   - Only **active** users (`isActive: true`) are returned
   - Ordered alphabetically by name
+  - `role` — primary role from user profile
+  - `roles` — all role/dept combinations from user_roles table (use this to identify RM/HOD per dept)
   - Requires authentication (any role)
 }

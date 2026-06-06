@@ -1,0 +1,53 @@
+meta {
+  name: Get Departments
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/requests/departments
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Got", res.body.departments.length, "department(s)");
+    res.body.departments.forEach(d => console.log("  -", d));
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Departments
+
+  Returns the list of all active departments — derived from users in the DB.
+  Use this to populate department dropdowns when forwarding a request or selecting an assigned dept.
+
+  ## Response
+  ```json
+  {
+    "departments": [
+      "Academics-Assam",
+      "Academics-Karnataka",
+      "Facilities",
+      "HR",
+      "Software",
+      ...
+    ]
+  }
+  ```
+
+  ## Notes
+  - Only departments that have at least one **active** user are returned
+  - Sorted alphabetically
+  - Requires authentication (any role)
+  - Typical usage flow:
+    1. Call `GET /requests/departments` → show dept dropdown
+    2. Call `GET /requests/users-by-dept?depts=<selected>` → show user list for that dept
+}
