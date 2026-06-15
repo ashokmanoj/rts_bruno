@@ -1,0 +1,103 @@
+meta {
+  name: List Requests (All Filters)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/management/requests
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~search: laptop
+  ~hodStatus: pending
+  ~rmStatus: approved
+  ~dept: Academics-Assam
+  ~status: open
+  ~startDate: 2025-01-01
+  ~endDate: 2025-12-31
+  ~page: 1
+  ~limit: 20
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const body = res.body;
+    const list = body.data ?? [];
+    console.log("✅ Total:", body.total, "| Returned:", list.length);
+    if (body.pagination) {
+      const p = body.pagination;
+      console.log("   Page:", p.page, "/", p.totalPages, "| Limit:", p.limit);
+    }
+    if (list.length > 0) {
+      bru.setEnvVar("requestId", String(list[0].id));
+      console.log("🔖 requestId saved (first result):", list[0].id, "| Purpose:", list[0].purpose);
+    }
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as Management first");
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — run Login first");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Management — List Requests (All Filters)
+
+  Returns GN-route requests visible to Management, with optional server-side filtering.
+  All query params are optional — omit any to skip that filter.
+
+  **Login as Management** before calling this endpoint.
+
+  ## Endpoint
+  `GET /api/management/requests`
+
+  ## Query Parameters
+  | Param       | Values                                        | Description                                          |
+  |-------------|-----------------------------------------------|------------------------------------------------------|
+  | `search`    | any text                                      | Searches name, empId, dept, purpose, description     |
+  | `hodStatus` | `pending` `approved` `rejected` `checking`    | Management's own decision on the ticket              |
+  | `rmStatus`  | `pending` `approved` `rejected` `checking`    | RM's approval status                                 |
+  | `dept`      | e.g. `Academics-Assam`, `HR`, `Purchase`      | Requestor's department (exact match)                 |
+  | `status`    | `open` `closed`                               | Whether the ticket is closed or still open           |
+  | `startDate` | `YYYY-MM-DD` or ISO 8601                      | Filter requests created on or after this date        |
+  | `endDate`   | `YYYY-MM-DD` or ISO 8601                      | Filter requests created on or before this date       |
+  | `page`      | number (default: 1)                           | Page number for pagination                           |
+  | `limit`     | number, max 200 (default: all)                | Results per page                                     |
+
+  ## hodStatus values (pending filter meaning)
+  | DB value   | Filter value | Meaning                        |
+  |------------|--------------|--------------------------------|
+  | `--`       | `pending`    | No decision yet                |
+  | `Checking` | `checking`   | Being reviewed                 |
+  | `Approved` | `approved`   | Approved by Management         |
+  | `Rejected` | `rejected`   | Rejected by Management         |
+
+  ## Response
+  ```json
+  {
+    "data": [ ...tickets ],
+    "total": 42,
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 42,
+      "totalPages": 3
+    }
+  }
+  ```
+  `pagination` is `null` when `page` / `limit` are not sent (returns all results).
+
+  ## Tips for mobile
+  - For the home screen: `?hodStatus=pending&status=open`
+  - For history: `?status=closed`
+  - For search: `?search=<keyword>`
+  - Always save `data[0].id` as `requestId` before calling the approval endpoint.
+}

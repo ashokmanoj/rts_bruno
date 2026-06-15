@@ -1,0 +1,65 @@
+meta {
+  name: List - Paginated
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/management/requests?page=1&limit=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const body = res.body;
+    const p = body.pagination;
+    console.log("✅ Page", p.page, "of", p.totalPages, "| Total:", p.total);
+    console.log("   Showing", body.data.length, "of", p.limit, "per page");
+    if (body.data.length > 0) {
+      bru.setEnvVar("requestId", String(body.data[0].id));
+      console.log("🔖 requestId saved:", body.data[0].id);
+    }
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Management — Paginated List
+
+  Fetches requests page by page. Combine with any filter param.
+
+  ## Pagination params
+  | Param   | Default | Max |
+  |---------|---------|-----|
+  | `page`  | 1       | —   |
+  | `limit` | all     | 200 |
+
+  ## Response includes pagination object
+  ```json
+  {
+    "data": [...],
+    "total": 42,
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 42,
+      "totalPages": 5
+    }
+  }
+  ```
+
+  ## Next page
+  Increment `page` by 1. Stop when `page >= totalPages`.
+
+  ## With filters
+  ```
+  ?hodStatus=pending&status=open&page=1&limit=10
+  ?search=laptop&page=2&limit=10
+  ```
+}

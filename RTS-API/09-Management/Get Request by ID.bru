@@ -1,0 +1,60 @@
+meta {
+  name: Get Request by ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/management/requests/{{requestId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body;
+    console.log("✅ Request found");
+    console.log("   ID:", r.id, "| Purpose:", r.purpose);
+    console.log("   Dept:", r.dept, "→ Assigned:", r.assignedDept);
+    console.log("   hodStatus (Mgmt):", r.hodStatus, "| rmStatus:", r.rmStatus);
+    console.log("   isClosed:", r.isClosed);
+  } else if (res.status === 404) {
+    console.log("❌ Not found — check requestId env var");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as Management first");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Management — Get Request by ID
+
+  Fetches the full details of a single request, including chat messages and attachments.
+  Run **List Requests** first to auto-save `requestId`, or set it manually in env vars.
+
+  ## Endpoint
+  `GET /api/management/requests/:id`
+
+  ## Key response fields
+  | Field              | Description                                                     |
+  |--------------------|-----------------------------------------------------------------|
+  | `id`               | Request ID                                                      |
+  | `purpose`          | Title                                                           |
+  | `description`      | Details                                                         |
+  | `dept`             | Requestor's department                                          |
+  | `assignedDept`     | Department currently handling the ticket                        |
+  | `hodStatus`        | Management's own decision (`--` / `Checking` / `Approved` / `Rejected`) |
+  | `rmStatus`         | RM decision                                                     |
+  | `deptHodStatus`    | Dept HOD decision                                               |
+  | `isClosed`         | `true` when ticket is resolved/rejected                         |
+  | `forwarded`        | `true` if ticket was forwarded to another dept                  |
+  | `forwardedBy`      | Name of person who forwarded                                    |
+  | `assignedDepts`    | Comma-separated forwarding chain history                        |
+  | `chatMessages`     | Array of messages, approvals, and system events                 |
+  | `fileUrls`         | Array of attachment URLs                                        |
+}

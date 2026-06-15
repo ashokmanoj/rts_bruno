@@ -1,0 +1,56 @@
+meta {
+  name: Checking Request (GN Route Only)
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/management/requests/{{requestId}}/approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Checking",
+    "comment": "Under review — will update shortly."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Checking — hodStatus:", res.body.hodStatus, "| on:", res.body.hodDate);
+  } else if (res.status === 400) {
+    console.log("❌ Bad request:", res.body.error, "— Is this a GN route request?");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — login as Management first");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Management — Checking (GN Route Only)
+
+  Sets a request to "Checking" status — only available for **GN route** requests
+  (where `owner.rmEmpId` or `owner.hodEmpId` is `GN-01` or `GN-02`).
+
+  Sending `"Checking"` on a non-GN request returns `400`.
+
+  ## Endpoint
+  `PATCH /api/management/requests/:id/approval`
+
+  ## Request body
+  ```json
+  { "decision": "Checking", "comment": "Under review." }
+  ```
+
+  ## GN Route detection
+  Check `res.body.isGnRoute === true` after fetching the request to know if Checking is allowed.
+}
