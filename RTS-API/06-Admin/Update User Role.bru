@@ -1,0 +1,37 @@
+meta {
+  name: Update User Role
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{baseUrl}}/admin/user-roles/{{userRoleId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "role": "HOD",
+    "dept": "Software"
+  }
+}
+
+docs {
+  # Update User Role
+
+  Changes the role or department of an existing role entry.
+
+  ## Body
+  | Field | Required | Description              |
+  |-------|----------|--------------------------|
+  | role  | YES      | New role value           |
+  | dept  | YES      | New department value     |
+
+  > Returns 400 if the new role+dept combination already exists for the same user.
+  > Accessible by: SuperUser, Admin, Management, HR DeptHOD
+}

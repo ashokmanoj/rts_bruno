@@ -1,0 +1,33 @@
+meta {
+  name: Delete User Role
+  type: http
+  seq: 12
+}
+
+delete {
+  url: {{baseUrl}}/admin/user-roles/{{userRoleId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Role deleted permanently.");
+  } else {
+    console.log("❌ Failed:", res.body.error);
+  }
+}
+
+docs {
+  # Delete User Role
+
+  Permanently removes a role entry (hard delete).
+
+  > Use **Toggle User Role** instead if you want to temporarily disable without losing history.
+  > After deletion, the same empId+role+dept can be re-added via Add User Role.
+  > Accessible by: SuperUser, Admin, Management, HR DeptHOD
+}

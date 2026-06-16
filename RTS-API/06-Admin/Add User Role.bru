@@ -1,0 +1,49 @@
+meta {
+  name: Add User Role
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/admin/user-roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "empId": "AC-1053",
+    "role": "DeptHOD",
+    "dept": "Software"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("userRoleId", String(res.body.id));
+    console.log("✅ Role added | ID:", res.body.id, "| empId:", res.body.empId, "| role:", res.body.role);
+  } else {
+    console.log("❌ Failed:", res.body.error);
+  }
+}
+
+docs {
+  # Add User Role
+
+  Assigns a new role+dept combination to a user.
+
+  ## Body
+  | Field | Required | Description                                         |
+  |-------|----------|-----------------------------------------------------|
+  | empId | YES      | Employee ID of the target user                      |
+  | role  | YES      | Role to assign: `Requestor` `RM` `HOD` `DeptHOD` `Management` `Admin` `Intern` |
+  | dept  | YES      | Department this role applies to                     |
+
+  > If the same empId+role+dept combination was previously disabled, it is **reactivated** instead of creating a duplicate.
+  > Returns 400 if an **active** entry for the same combination already exists.
+  > Accessible by: SuperUser, Admin, Management, HR DeptHOD
+}

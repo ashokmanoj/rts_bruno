@@ -1,0 +1,35 @@
+meta {
+  name: Toggle User Role
+  type: http
+  seq: 11
+}
+
+patch {
+  url: {{baseUrl}}/admin/user-roles/{{userRoleId}}/toggle
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Role toggled | isActive:", res.body.isActive);
+  } else {
+    console.log("❌ Failed:", res.body.error);
+  }
+}
+
+docs {
+  # Toggle User Role (Enable / Disable)
+
+  Flips the `isActive` state of a role entry without deleting it.
+
+  - Active → Disabled: user loses this role's permissions
+  - Disabled → Active: role is restored
+
+  > No body required — the server flips the current value automatically.
+  > Accessible by: SuperUser, Admin, Management, HR DeptHOD
+}

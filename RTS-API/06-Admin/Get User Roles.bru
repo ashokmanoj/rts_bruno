@@ -1,0 +1,47 @@
+meta {
+  name: Get User Roles
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/admin/user-roles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~search: john
+  ~role: DeptHOD
+  ~dept: HR
+}
+
+docs {
+  # Get User Roles
+
+  Returns all user role entries. Supports optional filtering.
+
+  ## Query Params
+  | Param  | Description                        |
+  |--------|------------------------------------|
+  | search | Filter by emp ID or user name      |
+  | role   | Filter by role e.g. `DeptHOD`, `RM` |
+  | dept   | Filter by department               |
+
+  ## Response fields
+  | Field    | Description                          |
+  |----------|--------------------------------------|
+  | id       | Role entry ID                        |
+  | empId    | Employee ID                          |
+  | name     | User's full name                     |
+  | role     | Assigned role                        |
+  | dept     | Assigned department for this role    |
+  | isActive | Whether this role entry is active    |
+
+  > Returns both active and inactive entries. Use `isActive` to distinguish.
+  > Accessible by: SuperUser, Admin, Management, HR DeptHOD
+}
