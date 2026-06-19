@@ -24,6 +24,9 @@ body:multipart-form {
   ~assignedPersonName: John Doe,Jane Smith
   ~isRecurring: false
   ~recurringInterval: 1m
+  ~ccDepts: HR
+  ~ccEmpIds: AC-1053,AC-1262
+  ~ccPersonNames: John Doe,Jane Smith
   ~files: @file(/path/to/attachment.pdf)
 }
 
@@ -43,22 +46,30 @@ docs {
 
   Creates a new support request (multipart/form-data).
 
+  ## Typical flow
+  1. `GET /requests/departments` → populate dept dropdown
+  2. `GET /requests/users-by-dept?depts=<dept>` → populate person picker (optional)
+  3. `POST /requests` → submit the request
+
   ## Fields
   | Field               | Required | Description                                                         |
   |---------------------|----------|---------------------------------------------------------------------|
   | purpose             | YES      | Short title for the request                                         |
-  | assignedDept        | no       | Primary (first) assigned department                                 |
-  | assignedDepts       | no       | Comma-separated list of all assigned depts e.g. `Software,Purchase` |
+  | assignedDept        | no       | Primary assigned department                                         |
+  | assignedDepts       | no       | Same as assignedDept (kept for compatibility)                       |
   | description         | no       | Detailed description                                                |
   | dueDate             | no       | ISO date string e.g. `2026-06-01` — drives urgency level            |
   | assignedPersonEmpId | no       | Comma-separated emp IDs — routes to specific people only            |
   | assignedPersonName  | no       | Comma-separated names matching the emp IDs above                    |
   | isRecurring         | no       | `true` to auto-recreate at the given interval; default `false`      |
-  | recurringInterval   | no       | `1w` \| `2w` \| `1m` \| `6m` \| `1y` — required when isRecurring=true |
+  | recurringInterval   | no       | `1m` \| `4m` \| `6m` \| `1y` — required when isRecurring=true      |
+  | ccDepts             | no       | Comma-separated departments to CC (view & chat only)                |
+  | ccEmpIds            | no       | Comma-separated emp IDs to CC                                       |
+  | ccPersonNames       | no       | Comma-separated names matching ccEmpIds                             |
   | files               | no       | Up to 10 attachments (total max 20 MB) — repeat field for multiple  |
 
   > `dept` is set automatically from the logged-in user's profile — never send it.
-  > If `assignedPersonEmpId` is omitted, the request goes to the full dept (old flow).
+  > If `assignedPersonEmpId` is omitted, the request goes to the full dept.
   > Recurring: a cron job runs daily at 00:05 and creates a fresh child request when `nextRecurringDate` is reached.
 
   ## Auto Urgency Level from dueDate
@@ -73,10 +84,13 @@ docs {
   ## Response fields
   | Field        | Description                                              |
   |--------------|----------------------------------------------------------|
+  | id           | New request ID (saved to env as `requestId`)             |
   | dueDate      | Formatted due date string                                |
   | dueDateRaw   | ISO due date                                             |
   | priority     | Computed urgency level: High / Medium / Low / Overdue    |
   | daysUntilDue | Integer days remaining (negative = overdue)              |
   | assignedDept | Primary assigned department                              |
-  | assignedDepts| Comma-separated assigned departments (same as above)     |
+  | assignedDepts| Comma-separated assigned departments                     |
+  | ccDepts      | CC'd departments                                         |
+  | ccEmpIds     | CC'd employee IDs                                        |
 }
