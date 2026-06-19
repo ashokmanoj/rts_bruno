@@ -1,0 +1,48 @@
+meta {
+  name: Get Locations
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/requests/locations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Got", res.body.locations.length, "location(s)");
+    res.body.locations.forEach(l => console.log("  -", l));
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Locations
+
+  Returns all active states / locations derived from users in the database.
+  Used to populate location dropdowns in Broadcast Send and filter panels.
+
+  ## Response
+  ```json
+  {
+    "locations": [
+      "Assam",
+      "Bangalore",
+      "Karnataka",
+      ...
+    ]
+  }
+  ```
+
+  ## Notes
+  - Only locations that have at least one **active** user are returned
+  - Sorted alphabetically
+  - Requires authentication (any role)
+}

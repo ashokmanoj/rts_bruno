@@ -1,0 +1,61 @@
+meta {
+  name: Get Broadcast Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/broadcast-users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Got", res.body.length, "user(s) available for broadcast");
+    const byDept = {};
+    res.body.forEach(u => { byDept[u.dept] = (byDept[u.dept] || 0) + 1; });
+    Object.entries(byDept).forEach(([d, n]) => console.log(" ", d, "—", n, "user(s)"));
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — must be DeptHOD of HR / Food Committee / TA Committee / RTS Help Desk");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Broadcast Users
+
+  Returns all active users (excluding the caller) available to target in a broadcast ticket.
+  Used to populate the individual user picker in the Broadcast Send modal.
+
+  ## Authorization
+  Caller must be **DeptHOD** of one of these departments:
+  - HR
+  - Food Committee
+  - TA Committee
+  - RTS Help Desk
+
+  ## Response
+  Array of user objects:
+  ```json
+  [
+    {
+      "empId": "AC-1053",
+      "name": "John Doe",
+      "dept": "Software",
+      "location": "Bangalore"
+    },
+    ...
+  ]
+  ```
+
+  ## Notes
+  - Sorted by dept then name
+  - The caller is excluded from the list
+  - Only `isActive: true` users are returned
+}

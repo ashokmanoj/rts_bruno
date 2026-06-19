@@ -1,0 +1,96 @@
+meta {
+  name: Broadcast Send
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/requests/broadcast-send
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  title: Annual Medical Check-up Notice
+  ~description: Please complete your medical check-up before 30th June.
+  sendToAll: true
+  ~sendToAll: false
+  ~targetDepts: HR
+  ~targetDepts: Software
+  ~targetLocations: Bangalore
+  ~targetLocations: Assam
+  ~targetEmpIds: AC-1053
+  ~targetEmpIds: GC-1299
+  ~files: @file(/path/to/attachment.pdf)
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Broadcast sent to", res.body.sentTo, "user(s)");
+  } else if (res.status === 400) {
+    console.log("❌ Bad request:", res.body.error);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — must be DeptHOD of HR / Food Committee / TA Committee / RTS Help Desk");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Broadcast Send
+
+  Creates a closed broadcast ticket for each target user simultaneously.
+  Each target receives their own individual ticket (pre-closed, requestorRole = "broadcast").
+
+  ## Authorization
+  Caller must be **DeptHOD** of one of these departments:
+  - HR
+  - Food Committee
+  - TA Committee
+  - RTS Help Desk
+
+  ## Fields (multipart/form-data)
+  | Field             | Required | Description                                                          |
+  |-------------------|----------|----------------------------------------------------------------------|
+  | `title`           | YES      | Ticket title / subject                                               |
+  | `description`     | no       | Optional body text for the broadcast                                 |
+  | `sendToAll`       | no       | `"true"` to send to every active user; default `"false"`            |
+  | `targetDepts`     | no       | Repeat for each dept to target e.g. `targetDepts=HR&targetDepts=Software` |
+  | `targetLocations` | no       | Repeat for each location e.g. `targetLocations=Bangalore`            |
+  | `targetEmpIds`    | no       | Repeat for specific emp IDs e.g. `targetEmpIds=AC-1053`              |
+  | `files`           | no       | Up to 10 file attachments (max 20 MB total) — repeat for multiple    |
+
+  > When `sendToAll=true`, all other target filters are ignored.
+  > When `sendToAll=false`, at least one of targetDepts / targetLocations / targetEmpIds must be provided.
+  > Targets are OR-combined: a user matching any filter is included.
+
+  ## Targeting logic
+  - Filters are combined with OR: user in any selected dept OR any selected location OR any listed empId
+  - The caller is always excluded from targets
+  - Only `isActive: true` users are eligible
+
+  ## Response
+  ```json
+  { "success": true, "sentTo": 42 }
+  ```
+
+  ## Each broadcast ticket created has
+  | Field              | Value                              |
+  |--------------------|------------------------------------|
+  | `requestorRole`    | `"broadcast"`                      |
+  | `assignedStatus`   | `"Broadcast"`                      |
+  | `deptHodStatus`    | `"Approved"`                       |
+  | `isClosed`         | `true`                             |
+  | `assignedPersonEmpId` | target user's empId             |
+  | `assignedPersonName`  | target user's name              |
+
+  ## Errors
+  | Status | Reason                                          |
+  |--------|-------------------------------------------------|
+  | 400    | Title missing, or no targets matched, or no filter selected when sendToAll=false |
+  | 403    | Caller is not authorized DeptHOD                |
+}

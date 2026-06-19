@@ -1,0 +1,59 @@
+meta {
+  name: Stop Recurring
+  type: http
+  seq: 19
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/stop-recurring
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Recurring schedule stopped.");
+    console.log("   isRecurring:", res.body.isRecurring);
+    console.log("   requestId:", res.body.id, "| Purpose:", res.body.purpose);
+  } else if (res.status === 400) {
+    console.log("❌ Not a recurring request");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — only DeptHOD of the assigned dept can stop recurring");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Stop Recurring
+
+  Stops the automatic re-creation schedule for a recurring request.
+  Sets `isRecurring = false` and clears `nextRecurringDate`.
+
+  ## Who can call this
+  Only the **DeptHOD** of the department the request is **assigned to**.
+
+  ## Rules
+  - Request must have `isRecurring: true`
+  - Caller must be DeptHOD and the request's `assignedDept` must match their dept
+
+  ## Side effects
+  - A system chat message is posted: _"🔁 Recurring schedule stopped by \<name\> (Dept HOD — \<dept\>). No further auto-requests will be created."_
+  - No existing child requests are deleted — only future auto-creation is stopped
+
+  ## Response
+  Returns the updated request object with `isRecurring: false`.
+
+  ## Errors
+  | Status | Reason                                          |
+  |--------|-------------------------------------------------|
+  | 400    | Request is not recurring                        |
+  | 403    | Caller is not DeptHOD of the assigned dept      |
+  | 404    | Request not found                               |
+}
