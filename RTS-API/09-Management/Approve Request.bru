@@ -5,7 +5,7 @@ meta {
 }
 
 patch {
-  url: {{baseUrl}}/management/requests/{{requestId}}/approval
+  url: {{baseUrl}}/requests/{{requestId}}/approval
   body: json
   auth: bearer
 }
@@ -23,7 +23,7 @@ body:json {
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ Approved — hodStatus:", res.body.hodStatus, "| on:", res.body.hodDate);
+    console.log("✅ Approved — managementStatus:", res.body.managementStatus, "| on:", res.body.managementDate);
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error);
   } else if (res.status === 403) {
@@ -39,17 +39,17 @@ docs {
   # Management — Approve Request
 
   Approves a request on behalf of the Management role.
-  This sets `hodStatus = "Approved"` and appends an approval card to the chat thread.
+  This sets `managementStatus = "Approved"` and appends an approval card to the chat thread.
 
   ## Endpoint
-  `PATCH /api/management/requests/:id/approval`
+  `PATCH /api/requests/:id/approval`
 
   ## Request body
-  | Field      | Type   | Required | Notes                        |
-  |------------|--------|----------|------------------------------|
-  | `decision` | string | Yes      | Must be `"Approved"`         |
-  | `comment`  | string | No       | Appears in the chat thread   |
+  | Field      | Type   | Required | Notes                                              |
+  |------------|--------|----------|----------------------------------------------------|
+  | `decision` | string | Yes      | `"Approved"` \| `"Rejected"` \| `"Checking"`      |
+  | `comment`  | string | No       | Appears in the chat thread                         |
 
   ## Response
-  Returns the updated full request object with `hodStatus: "Approved"`.
+  Returns the updated full request object with `managementStatus: "Approved"`.
 }
