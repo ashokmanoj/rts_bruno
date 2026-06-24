@@ -38,19 +38,34 @@ script:post-response {
 docs {
   # Management — Checking (GN Route Only)
 
-  Sets a request to "Checking" status — only available for **GN route** requests
-  (where `owner.rmEmpId` or `owner.hodEmpId` is `GN-01` or `GN-02`).
+  Sets a request to "Checking" status. Only valid for **GN route** requests
+  (where the requestor's RM or HOD is `GN-01` or `GN-02`).
 
-  Sending `"Checking"` on a non-GN request returns `400`.
+  Sending `"Checking"` on a non-GN request returns `400 Bad Request`.
 
   ## Endpoint
   `PATCH /api/management/requests/:id/approval`
 
   ## Request body
-  ```json
-  { "decision": "Checking", "comment": "Under review." }
-  ```
+  | Field      | Type   | Required | Notes                        |
+  |------------|--------|----------|------------------------------|
+  | `decision` | string | Yes      | Must be `"Checking"`         |
+  | `comment`  | string | No       | Appears in the chat thread   |
+
+  ## Response
+  Returns the updated full request object with `hodStatus: "Checking"`.
 
   ## GN Route detection
-  Check `res.body.isGnRoute === true` after fetching the request to know if Checking is allowed.
+  Fetch the request first via `GET /api/management/requests/:id` and check:
+  ```json
+  { "isGnRoute": true }
+  ```
+  If `isGnRoute` is `false`, sending Checking returns `400`.
+
+  ## Error responses
+  | Status | Meaning                                              |
+  |--------|------------------------------------------------------|
+  | `400`  | Request is not a GN route — Checking not allowed     |
+  | `403`  | Not logged in as Management                          |
+  | `404`  | Request not found — check `requestId` env var        |
 }

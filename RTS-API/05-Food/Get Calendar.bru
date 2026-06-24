@@ -26,13 +26,48 @@ vars:pre-request {
 
 docs {
   # Get Calendar
-  
+
   Gets the food calendar for the user for the given month and year.
-  
+
   ## Query Parameters
   - `month` (number, 1–12): Month to fetch. Defaults to current month.
   - `year` (number): Year to fetch. Defaults to current year.
-  
+
   ## Example
-  `GET /food/calendar?month=4&year=2026`
+  `GET /food/calendar?month=6&year=2026`
+
+  ## Response shape
+  ```json
+  {
+    "subscribed": true,
+    "workingDays": 22,
+    "totalAmount": 3500,
+    "hasManual": true,
+    "days": [ { "date": "2026-06-01", "type": "working" }, ... ]
+  }
+  ```
+
+  ## Day types
+  | Type              | Meaning                                                                 |
+  |-------------------|-------------------------------------------------------------------------|
+  | `working`         | Active food day (Mon–Fri, subscribed)                                   |
+  | `working-saturday`| Active food on a working Saturday                                       |
+  | `manual`          | Manually added by admin — counted in this month's bill                  |
+  | `cancelled`       | User cancelled food for this day/week                                   |
+  | `inactive`        | Food disabled (bulk cancel in effect)                                   |
+  | `holiday`         | Public holiday                                                          |
+  | `weekend`         | Saturday/Sunday (non-working)                                           |
+  | `not-subscribed`  | User has not subscribed to food                                         |
+  | `other-week`      | Week whose Monday is in the **previous month** — billed to prev month   |
+  | `next-week`       | Day in the **next month** whose Monday is in this month — billed here   |
+
+  ## Billing rule
+  A week is billed to the **month containing its Monday (weekStartDate)**.
+  - Calendar extends past month-end to show the full last week for clarity.
+  - Days marked `next-week` appear at the end of the calendar and count in this month's total.
+  - Days marked `other-week` appear at the start (grayed/dashed) and do NOT count here.
+
+  ## `hasManual` flag
+  `true` when the user has at least one `FoodManualEntry` for a week that starts in this month.
+  Shown as a "+ Manual Entry" badge in the summary bar.
 }

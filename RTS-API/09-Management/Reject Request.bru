@@ -5,7 +5,7 @@ meta {
 }
 
 patch {
-  url: {{baseUrl}}/management/requests/{{requestId}}/approval
+  url: {{baseUrl}}/requests/{{requestId}}/approval
   body: json
   auth: bearer
 }
@@ -39,16 +39,29 @@ docs {
   # Management — Reject Request
 
   Rejects a request. Sets `hodStatus = "Rejected"` and appends a rejection card to the chat thread.
+  A rejection comment is strongly recommended so the requestor knows why.
 
   ## Endpoint
-  `PATCH /api/management/requests/:id/approval`
+  `PATCH /api/requests/:id/approval`
 
   ## Request body
-  | Field      | Type   | Required | Notes                        |
-  |------------|--------|----------|------------------------------|
-  | `decision` | string | Yes      | Must be `"Rejected"`         |
-  | `comment`  | string | No       | Reason for rejection         |
+  | Field      | Type   | Required | Notes                                       |
+  |------------|--------|----------|---------------------------------------------|
+  | `decision` | string | Yes      | Must be `"Rejected"`                        |
+  | `comment`  | string | No       | Reason for rejection — shown in chat thread |
 
   ## Response
   Returns the updated full request object with `hodStatus: "Rejected"`.
+
+  ## Notes
+  - Only Management-role users can reject.
+  - A rejection card is posted to the chat thread automatically.
+  - The requestor is notified via push notification if subscribed.
+
+  ## Error responses
+  | Status | Meaning                                       |
+  |--------|-----------------------------------------------|
+  | `400`  | Invalid decision or request already closed    |
+  | `403`  | Not logged in as Management                   |
+  | `404`  | Request not found — check `requestId` env var |
 }

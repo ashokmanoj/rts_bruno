@@ -26,19 +26,43 @@ vars:pre-request {
 }
 
 docs {
-  # Get Food Report (HOD only)
+  # Get Food Report
 
   Returns the food report for the given period.
 
+  ## Access
+  Requires one of: **FoodCommittee DeptHOD**, **HR DeptHOD**, or **SuperUser**.
+
   ## Query Parameters
-  - `type` — `"month"` (default) or `"week"`
-  - `month` — 1–12 (used when type=month)
-  - `year` — full year e.g. 2026 (used when type=month)
-  - `weekStart` — ISO date string e.g. `2026-04-28` (used when type=week)
+  | Param       | Type   | Notes                                             |
+  |-------------|--------|---------------------------------------------------|
+  | `type`      | string | `"month"` (default) or `"week"`                  |
+  | `month`     | number | 1–12 — used when `type=month`                    |
+  | `year`      | number | Full year e.g. `2026` — used when `type=month`   |
+  | `weekStart` | string | ISO date of week Monday — used when `type=week`  |
 
   ## Example — monthly
-  `GET /food/report?type=month&month=4&year=2026`
+  `GET /food/report?type=month&month=6&year=2026`
 
   ## Example — weekly
-  `GET /food/report?type=week&weekStart=2026-04-28`
+  `GET /food/report?type=week&weekStart=2026-06-23`
+
+  ## Response — row fields
+  | Field          | Type    | Description                                                  |
+  |----------------|---------|--------------------------------------------------------------|
+  | `empId`        | string  | Employee ID                                                  |
+  | `name`         | string  | Employee name                                                |
+  | `dept`         | string  | Department                                                   |
+  | `workingDays`  | number  | Days subscribed and active (null if manual-only)             |
+  | `amount`       | number  | Total charge for the period                                  |
+  | `isManual`     | boolean | `true` if row has ONLY a manual entry (no subscription)      |
+  | `hasManual`    | boolean | `true` if row has both a subscription AND a manual entry     |
+
+  ## Manual entry badges
+  - `isManual: true` → amber **"Manual"** badge in the report table (no subscription this period)
+  - `hasManual: true` → green **"+M"** badge alongside normal working days (subscription + manual)
+
+  ## Billing rule (monthly report)
+  A week is counted in the month containing its **Monday**. Manual entry amounts are
+  similarly allocated to the month of their `weekStartDate`.
 }

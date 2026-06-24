@@ -1,0 +1,77 @@
+meta {
+  name: Add Manual Entry
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/food/admin/manual-entry
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "empId": "EMP001",
+    "weekDate": "2026-06-24",
+    "amount": 1500,
+    "note": "Added manually — did not subscribe in time"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Manual entry saved — week starting:", res.body.weekStartDate);
+    console.log("   Employee:", res.body.empId, "| Amount: ₹" + res.body.amount);
+  } else if (res.status === 400) {
+    console.log("❌ Bad request:", res.body.error);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — need FoodCommittee DeptHOD, HR DeptHOD, or SuperUser role");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Add Manual Food Entry
+
+  Manually adds a user to food for a specific week with a custom amount.
+  Used when a user didn't subscribe in time but physically ate food that week.
+
+  ## Access
+  Requires one of:
+  - **FoodCommittee DeptHOD**
+  - **HR DeptHOD**
+  - **SuperUser**
+
+  ## Endpoint
+  `POST /api/food/admin/manual-entry`
+
+  ## Request Body
+  | Field      | Type   | Required | Notes                                              |
+  |------------|--------|----------|----------------------------------------------------|
+  | `empId`    | string | Yes      | Employee ID of the user to add                     |
+  | `weekDate` | string | Yes      | Any date within the target week (ISO format)       |
+  | `amount`   | number | Yes      | Custom amount in ₹ for that week                   |
+  | `note`     | string | No       | Reason / comment for the entry                     |
+
+  ## Billing rule
+  The system derives the **Monday** of the week containing `weekDate` and stores that
+  as `weekStartDate`. The week is billed to the **month of that Monday**.
+
+  ## Upsert behaviour
+  If the user already has a manual entry for the same week, it is **overwritten**
+  (upsert on `empId + weekStartDate`).
+
+  ## Visibility
+  - Appears in the food **report** with an amber "Manual" badge
+  - Appears in the user's **calendar** as a green cell with a dot
+  - Counted in the user's `totalAmount` for that month
+
+  ## Example
+  `weekDate: "2026-06-24"` → Monday is `2026-06-22` → week billed to **June 2026**.
+}
