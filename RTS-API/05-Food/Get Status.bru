@@ -20,14 +20,22 @@ docs {
   Returns the user's current food subscription state.
 
   ## Response fields
-  - `subscribed` — whether a FoodSubscription record exists
-  - `isActive` — subscription is not fully disabled
-  - `isCancelledNextWeek` — single-week cancellation exists for next Monday
-  - `nextWeekSuspended` — next week will have no food (either cancelled or suspended)
-  - `isBulkSuspendedNextWeek` — year was cancelled starting next Monday (Button 2 active)
-  - `isEnabledNextWeekOnly` — year is suspended but next week is enabled (Button 3 active)
-  - `suspendedFrom` — date from which food is suspended (null if not suspended)
-  - `canCancelNow` — whether the cancellation window is open (Mon–Sat always; Sun before 10:30 AM IST)
-  - `subscription.optedInAt` — when the subscription was created
-  - `subscription.startDate` — first active Monday of the subscription
+  | Field                    | Type    | Description                                                                 |
+  |--------------------------|---------|-----------------------------------------------------------------------------|
+  | `subscribed`             | boolean | `true` if the user has a subscription OR a manual entry for current/future week |
+  | `isManualOnly`           | boolean | `true` when `subscribed` is set only because of a manual entry (no real subscription) |
+  | `isActive`               | boolean | Subscription is not fully disabled                                          |
+  | `isCancelledNextWeek`    | boolean | Single-week cancellation exists for next Monday                             |
+  | `nextWeekSuspended`      | boolean | Next week will have no food (cancelled or suspended)                        |
+  | `isBulkSuspendedNextWeek`| boolean | Year was cancelled starting next Monday                                     |
+  | `isEnabledNextWeekOnly`  | boolean | Year is suspended but next week is enabled                                  |
+  | `suspendedFrom`          | string  | ISO date from which food is suspended (null if not suspended)               |
+  | `canCancelNow`           | boolean | Cancellation window is open (Mon–Sat 6:30 PM; Sun before 10:30 AM IST)     |
+  | `subscription.optedInAt` | string  | When the subscription was created                                           |
+  | `subscription.startDate` | string  | First active Monday of the subscription                                     |
+
+  ## Mobile integration note
+  Always check `subscribed: true` to decide whether to fetch and display the food calendar.
+  When `isManualOnly: true`, the user has a manual food entry but no formal subscription —
+  **show their calendar** but **hide** the cancel/skip/pause action buttons.
 }
