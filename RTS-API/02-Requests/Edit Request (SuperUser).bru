@@ -42,7 +42,7 @@ docs {
   # Edit Request (SuperUser only)
 
   Allows a SuperUser to edit core fields of any request.
-  A system message is auto-logged in the chat thread after the edit.
+  **All existing chat messages for the ticket are deleted** when this endpoint is called — no edit notification is logged.
 
   ## Editable fields (all optional — only send what you want to change)
   | Field                | Type     | Description                                      |

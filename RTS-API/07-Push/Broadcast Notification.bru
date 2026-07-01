@@ -1,0 +1,82 @@
+meta {
+  name: Broadcast Notification
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/push/broadcast
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Important Announcement",
+    "message": "Please check the notice board for updates.",
+    "targetDepts": [],
+    "targetLocations": []
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Broadcast sent to", res.body.sentTo, "user(s)");
+    console.log("  Target depts:", res.body.targetDepts);
+    console.log("  Target locations:", res.body.targetLocations);
+  } else if (res.status === 400) {
+    console.log("❌ Bad request:", res.body.error);
+  } else if (res.status === 403) {
+    console.log("❌ Not authorized:", res.body.error);
+  } else if (res.status === 404) {
+    console.log("❌ No users found for the selected filter");
+  }
+}
+
+docs {
+  # Broadcast Push Notification
+
+  Sends a **web push notification** to all active users matching the optional dept/location filter.
+  Leave `targetDepts` and `targetLocations` as empty arrays to send to **all active users**.
+
+  ## Access
+  | Role      | Condition                                             |
+  |-----------|-------------------------------------------------------|
+  | SuperUser | Always allowed                                        |
+  | Management| Always allowed                                        |
+  | DeptHOD   | Only if dept is `HR`, `Food Committee`, or `RTS Help Desk` |
+  | Others    | 403 Forbidden                                         |
+
+  ## Request body
+  | Field             | Required | Type            | Description                                              |
+  |-------------------|----------|-----------------|----------------------------------------------------------|
+  | `title`           | Yes      | string          | Notification title                                       |
+  | `message`         | Yes      | string          | Notification body text (sender dept is appended as sign-off) |
+  | `targetDepts`     | No       | string[]        | Filter by dept names; empty array = all depts            |
+  | `targetLocations` | No       | string[]        | Filter by location; empty array = all locations          |
+
+  ## Notification payload sent to devices
+  - **title**: as provided
+  - **body**: `${message}\n \nRegards,\n${senderDept} Department`
+  - **tag**: `broadcast-<timestamp>` (each broadcast is unique; won't replace previous)
+  - **requireInteraction**: false
+  - **type**: `"broadcast"`
+
+  ## Response
+  ```json
+  {
+    "success": true,
+    "sentTo": 142,
+    "targetDepts": "all",
+    "targetLocations": "all"
+  }
+  ```
+
+  ## Notes
+  - This sends **web push** (VAPID/browser) notifications only — not FCM mobile push.
+  - Failed deliveries (expired subscriptions) are silently skipped via `Promise.allSettled`.
+}

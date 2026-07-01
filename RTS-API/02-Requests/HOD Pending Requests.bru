@@ -1,0 +1,74 @@
+meta {
+  name: HOD Pending Requests
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{baseUrl}}/requests/hod-pending
+  body: none
+  auth: bearer
+}
+
+query {
+  ~page: 1
+  ~limit: 50
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const requests = res.body.data;
+    console.log("✅ HOD pending requests:", requests.length);
+    if (requests.length > 0) {
+      bru.setEnvVar("requestId", String(requests[0].id));
+      console.log("  First:", requests[0].id, "—", requests[0].purpose);
+    }
+  } else if (res.status === 403) {
+    console.log("❌ Access denied — Management role required");
+  }
+}
+
+docs {
+  # HOD Pending Requests
+
+  Returns requests where **both RM and HOD have approved** but the Management layer
+  has not yet taken action (`hodStatus` is null or still pending).
+
+  Used by the Management dashboard to list tickets awaiting their review.
+
+  ## Access
+  **Management role only.** Returns 403 for all other roles.
+
+  ## Query Parameters
+  | Param   | Default | Description         |
+  |---------|---------|---------------------|
+  | `page`  | 1       | Pagination page     |
+  | `limit` | 50      | Results per page    |
+
+  ## Response
+  Same paginated shape as `GET /requests`:
+  ```json
+  {
+    "data": [ ...request objects... ],
+    "pagination": {
+      "total": 12,
+      "page": 1,
+      "limit": 50,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrev": false
+    }
+  }
+  ```
+
+  ## Key fields
+  | Field        | Description                                        |
+  |--------------|----------------------------------------------------|
+  | `rmStatus`   | Will be `"Approved"` for all results               |
+  | `hodStatus`  | Will be `"Approved"` for all results               |
+  | `hodDate`    | When HOD approved                                  |
+}

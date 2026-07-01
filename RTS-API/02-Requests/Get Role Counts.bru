@@ -1,0 +1,59 @@
+meta {
+  name: Get Role Counts
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{baseUrl}}/requests/role-counts
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const counts = res.body;
+    console.log("✅ Role counts loaded:", counts.length, "role(s)");
+    counts.forEach(r => console.log(`  ${r.role} / ${r.dept}: ${r.count} unread`));
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — run Login first");
+  }
+}
+
+docs {
+  # Get Role Counts
+
+  Returns the **unread open-ticket count** for every role the logged-in user holds.
+  Used by the role switcher to show badge numbers on each role chip.
+
+  Each entry maps to one row in the `userRole` table for the calling `empId`.
+
+  ## Response
+  ```json
+  [
+    { "role": "RM",       "dept": "Software",  "count": 4 },
+    { "role": "HOD",      "dept": "Academic",  "count": 7 },
+    { "role": "Requestor","dept": "Software",  "count": 1 }
+  ]
+  ```
+
+  ## Response fields
+  | Field   | Type   | Description                                                 |
+  |---------|--------|-------------------------------------------------------------|
+  | `role`  | string | Role name — same values as JWT `role`                       |
+  | `dept`  | string | Department this role belongs to                             |
+  | `count` | number | Open tickets **not yet read** by this empId under this role |
+
+  ## Counting rules
+  - Only **open** (`isClosed: false`) requests are counted.
+  - Broadcast messages are excluded from the count.
+  - "Unread" means the caller has **no read receipt** for that request under the role's visibility filter.
+  - Each role's visibility filter mirrors the filter used by `GET /requests` for that role — so the badge count is always consistent with what the user would see after switching.
+
+  ## Access
+  Authenticated users only. Returns an empty array `[]` if the user has no roles.
+}

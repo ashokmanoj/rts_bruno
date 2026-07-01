@@ -59,7 +59,7 @@ docs {
   | assignedDepts       | no       | Same as assignedDept (kept for compatibility)                       |
   | description         | no       | Detailed description                                                |
   | dueDate             | no       | ISO date string e.g. `2026-06-01` — drives urgency level            |
-  | assignedPersonEmpId | no       | Comma-separated emp IDs — routes to specific people only            |
+  | assignedPersonEmpId | no       | Comma-separated emp IDs — routes to specific people only; sets `isDirectAssign: true` automatically |
   | assignedPersonName  | no       | Comma-separated names matching the emp IDs above                    |
   | isRecurring         | no       | `true` to auto-recreate at the given interval; default `false`      |
   | recurringInterval   | no       | `1m` \| `4m` \| `6m` \| `1y` — required when isRecurring=true      |
@@ -89,8 +89,9 @@ docs {
   | dueDateRaw   | ISO due date                                             |
   | priority     | Computed urgency level: High / Medium / Low / Overdue    |
   | daysUntilDue | Integer days remaining (negative = overdue)              |
-  | assignedDept | Primary assigned department                              |
-  | assignedDepts| Comma-separated assigned departments                     |
-  | ccDepts      | CC'd departments                                         |
-  | ccEmpIds     | CC'd employee IDs                                        |
+  | assignedDept        | Primary assigned department                              |
+  | assignedDepts       | Comma-separated assigned departments                     |
+  | isDirectAssign      | `true` when requestor explicitly picked a person; `false` when assigned to dept only. Controls dept-level visibility. |
+  | ccDepts             | CC'd departments                                         |
+  | ccEmpIds            | CC'd employee IDs                                        |
 }

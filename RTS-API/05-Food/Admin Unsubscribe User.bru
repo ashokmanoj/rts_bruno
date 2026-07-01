@@ -1,0 +1,47 @@
+meta {
+  name: Admin Unsubscribe User
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{baseUrl}}/food/admin/unsubscribe/EMP001
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ User unsubscribed from food successfully");
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser role required");
+  }
+}
+
+docs {
+  # Admin — Unsubscribe User from Food
+
+  **Permanently removes** a user's food subscription record.
+  Use `PATCH /food/admin/toggle/:empId` instead if you only want to temporarily deactivate.
+
+  Replace `:empId` in the URL with the target employee's empId, e.g. `/food/admin/unsubscribe/EMP001`.
+
+  ## Access
+  **SuperUser only.** Returns 403 for all other roles.
+
+  ## Request body
+  None.
+
+  ## Response
+  ```json
+  { "success": true }
+  ```
+
+  ## Warning
+  This operation is **irreversible** — the subscription row is deleted.
+  To re-subscribe the user, use `POST /food/admin/subscribe/:empId`.
+}

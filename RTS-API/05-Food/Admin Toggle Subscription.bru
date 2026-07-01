@@ -1,0 +1,55 @@
+meta {
+  name: Admin Toggle Subscription
+  type: http
+  seq: 18
+}
+
+patch {
+  url: {{baseUrl}}/food/admin/toggle/EMP001
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "isActive": false
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Subscription toggled successfully");
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser role required");
+  }
+}
+
+docs {
+  # Admin — Toggle Food Subscription
+
+  Activates or deactivates a user's food subscription without deleting it.
+  The subscription record is preserved — the user can be re-activated later.
+
+  Replace `:empId` in the URL with the target employee's empId, e.g. `/food/admin/toggle/EMP001`.
+
+  ## Access
+  **SuperUser only.** Returns 403 for all other roles.
+
+  ## Request body
+  | Field      | Required | Type    | Description                                |
+  |------------|----------|---------|--------------------------------------------|
+  | `isActive` | Yes      | boolean | `true` to activate, `false` to deactivate |
+
+  ## Response
+  ```json
+  { "success": true }
+  ```
+
+  ## Difference from unsubscribe
+  - **Toggle** (`isActive: false`) — deactivates but keeps the record. Re-activatable.
+  - **Unsubscribe** (`DELETE`) — permanently removes the subscription record.
+}

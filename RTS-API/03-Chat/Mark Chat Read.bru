@@ -1,0 +1,49 @@
+meta {
+  name: Mark Chat Read
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/requests/{{requestId}}/chat/read
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Chat marked as read for request:", bru.getEnvVar("requestId"));
+  } else if (res.status === 403) {
+    console.log("❌ No access to this request");
+  }
+}
+
+docs {
+  # Mark Chat Read
+
+  Creates a **read receipt** for the calling user on the specified request.
+  This prevents the request from appearing in unread counts (role badge, unread filter).
+
+  Called automatically by the frontend whenever the chat panel is opened.
+
+  ## Behaviour
+  - Uses `upsert` — safe to call multiple times; duplicate receipts are ignored.
+  - The read receipt is stored in the `RequestRead` table: `(requestId, empId)`.
+  - After marking read, `GET /requests/role-counts` will exclude this ticket from the caller's badge count.
+
+  ## Request body
+  None required.
+
+  ## Response
+  ```json
+  { "success": true }
+  ```
+
+  ## Access
+  Authenticated users who have visibility on the request (enforced by `authorizeRequestAccess`).
+  Returns 403 if the user cannot access this request.
+}

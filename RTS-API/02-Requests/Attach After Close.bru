@@ -24,7 +24,7 @@ script:post-response {
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error, "— ticket may not be closed/resolved yet");
   } else if (res.status === 403) {
-    console.log("❌ Forbidden — only team members or assigned staff can attach after close");
+    console.log("❌ Forbidden — only team members, assigned staff, or the requestor can attach after close");
   } else if (res.status === 404) {
     console.log("❌ Request not found — check requestId env var");
   } else {
@@ -42,6 +42,7 @@ docs {
   User must be one of:
   - A **team member** of the incoming department
   - **Specifically assigned** to the request
+  - The **original requestor** (ticket owner)
   - NOT an Admin, NOT a CC user
 
   The ticket must be:

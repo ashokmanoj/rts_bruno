@@ -1,0 +1,58 @@
+meta {
+  name: Admin Get All Subscriptions
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/food/admin/subscriptions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Subscriptions loaded:", res.body.length, "record(s)");
+    if (res.body.length > 0) {
+      const first = res.body[0];
+      console.log("  First:", first.empId, "—", first.name, "active:", first.isActive);
+    }
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser role required");
+  }
+}
+
+docs {
+  # Admin — Get All Food Subscriptions
+
+  Returns **every food subscription** in the system regardless of status.
+  Used by the SuperUser admin panel to manage all subscribers.
+
+  ## Access
+  **SuperUser only.** Returns 403 for all other roles.
+
+  ## Response
+  Array of subscription objects:
+  ```json
+  [
+    {
+      "empId":      "EMP001",
+      "name":       "John Doe",
+      "dept":       "Software",
+      "location":   "Bangalore",
+      "isActive":   true,
+      "optedInAt":  "2026-01-15T09:00:00.000Z",
+      "startDate":  "2026-01-20T00:00:00.000Z"
+    }
+  ]
+  ```
+
+  ## Related admin endpoints
+  - `POST /food/admin/subscribe/:empId` — subscribe a user manually
+  - `PATCH /food/admin/toggle/:empId` — activate / deactivate a subscription
+  - `DELETE /food/admin/unsubscribe/:empId` — permanently remove a subscription
+}

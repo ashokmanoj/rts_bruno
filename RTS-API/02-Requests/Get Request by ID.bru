@@ -15,7 +15,7 @@ auth:bearer {
 }
 
 vars:pre-request {
-  requestId: 31
+  requestId: 1704
 }
 
 script:post-response {
@@ -38,13 +38,13 @@ script:post-response {
 
 docs {
   # Get Request by ID
-
+  
   Returns a single request by its numeric ID.
   Access is restricted to users who can see that request (same role/dept rules as Get All Requests).
-
+  
   ## URL
   `GET /api/requests/:id`
-
+  
   ## Push Notification Deep Link
   When a new-request push notification is tapped on mobile or web, the app is opened with:
   ```
@@ -52,7 +52,7 @@ docs {
   ```
   The frontend reads `openRequest` from the URL, calls this endpoint, and opens the details modal directly.
   The mobile app should read the `requestId` or `deepLink` field from the FCM data payload and navigate accordingly.
-
+  
   ## FCM data payload fields (for mobile deep link)
   | Field       | Example value                                      | Notes                              |
   |-------------|----------------------------------------------------|------------------------------------|
@@ -60,7 +60,7 @@ docs {
   | `deepLink`  | `"http://192.168.1.128:5173/?openRequest=232"`     | Full URL — open in WebView or browser |
   | `url`       | `"/?openRequest=232"`                              | Relative URL (web push / sw.js)    |
   | `type`      | `"new_request"`                                    | Notification category              |
-
+  
   ## Response fields
   | Field              | Description                                                                 |
   |--------------------|-----------------------------------------------------------------------------|
@@ -77,10 +77,11 @@ docs {
   | `assignedStatus`   | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` / `Rejected (Closed)` |
   | `isClosed`         | `true` when closed (Received acknowledgement OR rejected by approver)       |
   | `checkingBy`       | Who set Checking, e.g. `"John (DeptHOD)"`                                  |
-  | `acknowledgement`  | `"Received"` / `"Not Received"` / null                                      |
+  | `acknowledgement`  | `"Received"` / `"Not Received"` / `"Resolved"` (auto-close) / null         |
+  | `isDirectAssign`   | `true` when requestor explicitly picked a person in Add Request; only that person + admins see it |
   | `chatMessages`     | Array of chat/approval/system messages                                      |
   | `closeData`        | Resolution note + file (null if not yet closed)                             |
-
+  
   ## Error responses
   | Status | Reason                              |
   |--------|-------------------------------------|

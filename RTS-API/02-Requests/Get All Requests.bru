@@ -75,11 +75,11 @@ docs {
   Each login session is fully isolated — logging in as RM-Software shows only Software data,
   logging in as HOD-Academic shows only Academic data.
 
-  ### Person-assignment visibility rule
-  When a request has `assignedPersonEmpId` set (specific persons named):
-  - Only the **named persons** can see it (plus RM/HOD/DeptHOD of assigned dept)
-  - All other team members of that dept are excluded
-  - If `assignedPersonEmpId` is null/empty — the entire assigned dept can see it (except Academic/Animation/Software)
+  ### Person-assignment visibility rule (`isDirectAssign`)
+  When a requestor explicitly picks a specific person in **Add Request**, `isDirectAssign` is set to `true`:
+  - Only the **named person(s)** can see it (plus SuperUser/Admin/Management)
+  - RM/HOD/DeptHOD of the assigned dept are excluded
+  - When `isDirectAssign` is `false` (DeptHOD internally assigns someone, or no person selected) — normal dept-level visibility applies
 
   ## Query Parameters
 
@@ -157,8 +157,9 @@ docs {
   | `checkingDeadline`   | Formatted checking deadline date                                   |
   | `checkingReason`     | Reason stored when status set to Checking                          |
   | `checkingDaysLeft`   | Days until checking deadline (negative = overdue)                  |
-  | `acknowledgement`    | `"Received"` / `"Not Received"` / null                            |
+  | `acknowledgement`    | `"Received"` / `"Not Received"` / `"Resolved"` (auto-close) / null |
   | `acknowledgedAt`     | Datetime of acknowledgement                                        |
+  | `isDirectAssign`     | `true` when requestor explicitly picked a person; restricts visibility to named persons only |
   | `assignedDept`       | Primary assigned department                                        |
   | `assignedDepts`      | Comma-separated assigned departments                               |
   | `rmStatus`           | RM approval: `--` / `Approved` / `Rejected` / `Forwarded`         |

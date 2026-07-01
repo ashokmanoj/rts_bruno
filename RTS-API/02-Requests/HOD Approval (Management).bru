@@ -1,0 +1,70 @@
+meta {
+  name: HOD Approval (Management)
+  type: http
+  seq: 25
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/hod-approval
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "decision": "Approved",
+    "comment": "Approved after review."
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ HOD decision recorded:", res.body.hodStatus);
+    console.log("  Request ID:", res.body.id);
+  } else if (res.status === 400) {
+    console.log("❌ Bad request:", res.body.error);
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden:", res.body.error);
+  } else if (res.status === 404) {
+    console.log("❌ Not found:", res.body.error);
+  }
+}
+
+docs {
+  # HOD Approval (Management Layer)
+
+  Records the **Management-level decision** on a request.
+  This is the third and final approval step — after RM (Step 1) and HOD (Step 2).
+
+  ## Access
+  **Management role only.** Returns 403 for all other roles.
+
+  ## Request body
+  | Field      | Required | Values                               | Notes                               |
+  |------------|----------|--------------------------------------|-------------------------------------|
+  | `decision` | Yes      | `Approved` / `Rejected` / `Close` / `Checking` | `Checking` only valid for GN-route requests |
+  | `comment`  | No       | Any string                           | Stored as a chat message            |
+
+  ## GN route note
+  Requests whose requestor belongs to RM `GN-01` or HOD `GN-02` are treated as GN-route.
+  These allow an extra `Checking` decision that standard requests do not.
+
+  ## Effect of each decision
+  | Decision   | `hodStatus` set to | `isClosed` |
+  |------------|--------------------|------------|
+  | `Approved` | `"Approved"`       | false      |
+  | `Rejected` | `"Rejected"`       | false      |
+  | `Close`    | `"Closed"`         | **true**   |
+  | `Checking` | `"Checking"`       | false      |
+
+  ## Side effects
+  - Logs an approval card in the chat.
+  - Clears read receipts for all users except the caller and CC users (so others see the ticket as unread).
+
+  ## Response
+  Full request object (same shape as `GET /requests/:id`).
+}
