@@ -5,7 +5,7 @@ meta {
 }
 
 patch {
-  url: {{baseUrl}}/requests/{{requestId}}/approval
+  url: {{baseUrl}}/management/requests/{{requestId}}/approval
   body: json
   auth: bearer
 }
@@ -42,7 +42,7 @@ docs {
   A rejection comment is strongly recommended so the requestor knows why.
 
   ## Endpoint
-  `PATCH /api/requests/:id/approval`
+  `PATCH /api/management/requests/:id/approval`
 
   ## Request body
   | Field      | Type   | Required | Notes                                       |

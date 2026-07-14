@@ -1,7 +1,7 @@
 meta {
-  name: Admin Toggle Subscription
+  name: Toggle Subscription
   type: http
-  seq: 18
+  seq: 5
 }
 
 patch {
@@ -34,7 +34,7 @@ docs {
   Activates or deactivates a user's food subscription without deleting it.
   The subscription record is preserved — the user can be re-activated later.
 
-  Replace `:empId` in the URL with the target employee's empId, e.g. `/food/admin/toggle/EMP001`.
+  Replace `:empId` in the URL with the target employee's empId.
 
   ## Access
   **SuperUser only.** Returns 403 for all other roles.
@@ -49,7 +49,7 @@ docs {
   { "success": true }
   ```
 
-  ## Difference from unsubscribe
+  ## Toggle vs Unsubscribe
   - **Toggle** (`isActive: false`) — deactivates but keeps the record. Re-activatable.
   - **Unsubscribe** (`DELETE`) — permanently removes the subscription record.
 }

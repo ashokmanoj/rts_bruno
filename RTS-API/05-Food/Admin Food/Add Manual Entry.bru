@@ -1,7 +1,7 @@
 meta {
   name: Add Manual Entry
   type: http
-  seq: 15
+  seq: 2
 }
 
 post {
@@ -66,12 +66,4 @@ docs {
   ## Upsert behaviour
   If the user already has a manual entry for the same week, it is **overwritten**
   (upsert on `empId + weekStartDate`).
-
-  ## Visibility
-  - Appears in the food **report** with an amber "Manual" badge
-  - Appears in the user's **calendar** as a green cell with a dot
-  - Counted in the user's `totalAmount` for that month
-
-  ## Example
-  `weekDate: "2026-06-24"` → Monday is `2026-06-22` → week billed to **June 2026**.
 }

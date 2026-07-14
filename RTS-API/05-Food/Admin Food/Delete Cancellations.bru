@@ -1,0 +1,61 @@
+meta {
+  name: Delete Cancellations
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/food/admin/cancellations?empId=EMP001&startDate=2026-06-29&endDate=2026-07-04
+  body: none
+  auth: bearer
+}
+
+params:query {
+  empId: EMP001
+  startDate: 2026-06-29
+  endDate: 2026-07-04
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Deleted", res.body.deleted, "cancellation record(s)");
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser role required");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Admin — Delete Cancellations (Undo Cancel Range)
+
+  Removes FoodCancellation records matching the given filters.
+  This is the **undo** operation for `POST /food/admin/cancel-range`.
+
+  ## Access
+  **SuperUser only.**
+
+  ## Query Parameters
+  | Param       | Type   | Required | Description                                                   |
+  |-------------|--------|----------|---------------------------------------------------------------|
+  | `empId`     | string | No       | Filter by employee. Omit to delete across all users           |
+  | `startDate` | string | No       | Lower bound of weekStartDate range (YYYY-MM-DD, Monday)       |
+  | `endDate`   | string | No       | Upper bound of weekStartDate range (YYYY-MM-DD, inclusive)    |
+
+  ## Response
+  ```json
+  { "deleted": 1 }
+  ```
+
+  ## Warning
+  Omitting all filters will delete **all** cancellation records system-wide.
+  Always run `GET /food/admin/cancellations/count` first to verify the scope.
+
+  ## Notes
+  - `startDate` / `endDate` match against the `weekStartDate` field (always a Monday).
+  - Deleted cancellations restore food for those weeks on the user's calendar.
+}

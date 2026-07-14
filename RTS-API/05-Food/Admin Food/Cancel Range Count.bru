@@ -1,0 +1,63 @@
+meta {
+  name: Cancel Range Count
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/food/admin/cancel-range/count?empId=EMP001&startDate=2026-06-30&endDate=2026-07-04
+  body: none
+  auth: bearer
+}
+
+params:query {
+  empId: EMP001
+  startDate: 2026-06-30
+  endDate: 2026-07-04
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Preview:", JSON.stringify(res.body, null, 2));
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser role required");
+  } else {
+    console.log("❌ Error:", res.body?.error);
+  }
+}
+
+docs {
+  # Admin — Preview Cancel Range (Count)
+
+  Returns a preview of how many week-slots will be cancelled if you run
+  `POST /food/admin/cancel-range` with the same parameters.
+  Use this as a dry-run before committing the cancellation.
+
+  ## Access
+  **SuperUser only.**
+
+  ## Query Parameters
+  | Param       | Type   | Required | Description                                               |
+  |-------------|--------|----------|-----------------------------------------------------------|
+  | `empId`     | string | No       | Target employee. Omit to apply to **all subscribed users** |
+  | `startDate` | string | Yes      | Start of date range (YYYY-MM-DD)                          |
+  | `endDate`   | string | Yes      | End of date range (YYYY-MM-DD)                            |
+
+  ## Response
+  ```json
+  {
+    "weekSlots": 1,
+    "mondays": ["2026-06-29"],
+    "affectedUsers": 1
+  }
+  ```
+
+  ## Notes
+  - A "week-slot" is one Monday (week start) per affected user.
+  - Weeks already cancelled are not counted.
+  - Use `POST /food/admin/cancel-range` to commit the actual cancellation.
+}

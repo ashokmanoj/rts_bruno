@@ -1,7 +1,7 @@
 meta {
-  name: Admin Subscribe User
+  name: Subscribe User
   type: http
-  seq: 17
+  seq: 4
 }
 
 post {
@@ -35,9 +35,7 @@ docs {
   # Admin — Subscribe User to Food
 
   Subscribes a specific employee to the food programme.
-  Used by SuperUser when onboarding staff or manually adding subscriptions.
-
-  Replace `:empId` in the URL with the target employee's empId, e.g. `/food/admin/subscribe/EMP001`.
+  Replace `:empId` in the URL with the target employee's empId.
 
   ## Access
   **SuperUser only.** Returns 403 for all other roles.
@@ -54,8 +52,8 @@ docs {
   ```
 
   ## Errors
-  | Status | Error                  | Cause                       |
-  |--------|------------------------|-----------------------------|
-  | 404    | `"User not found."`    | empId does not exist        |
-  | 403    | Forbidden              | Caller is not SuperUser     |
+  | Status | Error               | Cause                   |
+  |--------|---------------------|-------------------------|
+  | 404    | `"User not found."` | empId does not exist    |
+  | 403    | Forbidden           | Caller is not SuperUser |
 }

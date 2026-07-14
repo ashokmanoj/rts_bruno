@@ -1,7 +1,7 @@
 meta {
-  name: Admin Unsubscribe User
+  name: Unsubscribe User
   type: http
-  seq: 19
+  seq: 6
 }
 
 delete {
@@ -28,7 +28,7 @@ docs {
   **Permanently removes** a user's food subscription record.
   Use `PATCH /food/admin/toggle/:empId` instead if you only want to temporarily deactivate.
 
-  Replace `:empId` in the URL with the target employee's empId, e.g. `/food/admin/unsubscribe/EMP001`.
+  Replace `:empId` in the URL with the target employee's empId.
 
   ## Access
   **SuperUser only.** Returns 403 for all other roles.

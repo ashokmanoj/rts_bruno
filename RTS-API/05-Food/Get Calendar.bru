@@ -13,6 +13,7 @@ get {
 params:query {
   month: {{month}}
   year: {{year}}
+  empId: ~
 }
 
 auth:bearer {
@@ -27,11 +28,13 @@ vars:pre-request {
 docs {
   # Get Calendar
 
-  Gets the food calendar for the user for the given month and year.
+  Gets the food calendar for the given month and year.
+  SuperUser can pass `empId` to view any user's calendar.
 
   ## Query Parameters
   - `month` (number, 1–12): Month to fetch. Defaults to current month.
   - `year` (number): Year to fetch. Defaults to current year.
+  - `empId` (string, optional): SuperUser only — view this employee's calendar instead of own.
 
   ## Example
   `GET /food/calendar?month=6&year=2026`
