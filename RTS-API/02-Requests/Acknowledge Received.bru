@@ -87,13 +87,15 @@ docs {
   All approval action buttons (Approve / Checking / Reject) become active again for RM, HOD, and DeptHOD.
 
   ## Rules
-  - Ticket must be in `assignedStatus: "Pending Acknowledgement"`
+  - Ticket must be in **one of these states** for this call to succeed:
+    - `assignedStatus: "Pending Acknowledgement"` — normal resolution flow
+    - `isClosed: true` AND `acknowledgement` is null — ticket was directly rejected/closed by admin without a resolution step (requestor can still choose Resolved or Not Resolved)
   - Only the original requestor (`empId` match) can call this
 
   ## Error responses
-  | Status | Reason                                      |
-  |--------|---------------------------------------------|
-  | 400    | Ticket not in Pending Acknowledgement state |
-  | 403    | Caller is not the original requestor        |
-  | 404    | Request not found                           |
+  | Status | Reason                                                       |
+  |--------|--------------------------------------------------------------|
+  | 400    | Ticket is not in an acknowledgeable state                    |
+  | 403    | Caller is not the original requestor                         |
+  | 404    | Request not found                                            |
 }

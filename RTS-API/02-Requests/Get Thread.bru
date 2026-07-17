@@ -1,0 +1,56 @@
+meta {
+  name: Get Thread
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/requests/{{requestId}}/thread
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const members = res.body;
+    console.log(`✅ Thread has ${members.length} other member(s)`);
+    members.forEach(m => console.log(`   #${m.id} — ${m.purpose} (${m.assignedStatus})`));
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — no access to this request");
+  } else {
+    console.log("❌", res.body?.error);
+  }
+}
+
+docs {
+  # Get Thread Members
+
+  Returns all **other** requests in the same thread as `{{requestId}}`.
+  Useful for displaying the thread chain in the detail panel.
+
+  ## How threads work
+  - Any request can be linked to a parent request via `threadParentId`
+  - The root request has `threadParentId = null`
+  - Replies have `threadParentId = <rootId>`
+  - This endpoint returns root + all replies **excluding** the current request
+
+  ## Response
+  Array of request summary objects — same shape as a list item in `GET /requests`.
+
+  ## Rules
+  - Requires valid JWT (authenticated user)
+  - Caller must have access to `{{requestId}}` (same access rules as `GET /requests/:id`)
+  - Returns `[]` if the request has no thread members (standalone ticket)
+
+  ## Errors
+  | Status | Reason                     |
+  |--------|----------------------------|
+  | 403    | No access to this request  |
+  | 404    | Request not found          |
+}
