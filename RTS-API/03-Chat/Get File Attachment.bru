@@ -1,0 +1,35 @@
+meta {
+  name: Get File Attachment
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/files/1700000000000-example.pdf
+  body: none
+  auth: none
+}
+
+docs {
+  # Get File Attachment
+
+  Serves an uploaded file (image, PDF, audio, etc.) by filename.
+  No authentication required — intentional, since filenames are random timestamps
+  and cannot be guessed, and auth tokens cannot be included in `<img src>` or `<audio src>` tags.
+
+  ## Endpoint
+  `GET /api/files/:filename`
+
+  Replace `:filename` with the value from any `fileUrl` field returned by the chat or request APIs.
+  The `fileUrl` from the API is typically already a full URL — strip the host/path prefix to get just the filename.
+
+  ## Auth
+  None required.
+
+  ## Response
+  Returns the raw file binary with the correct `Content-Type` header inferred from the file extension.
+
+  ## Errors
+  - **400** — no filename provided (hitting `/api/files/` without a filename)
+  - **404** — file not found on disk (deleted or wrong name)
+}

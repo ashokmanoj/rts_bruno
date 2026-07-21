@@ -20,14 +20,29 @@ body:json {
     "email": "newuser@rts.com",
     "password": "Password@123",
     "role": "Requestor",
-    "department": "IT",
-    "empId": "RTS-001",
-    "active": true
+    "dept": "Software",
+    "empId": "RTS-001"
   }
 }
 
 docs {
   # Create User
-  
-  Allows an admin to create a new user account.
+
+  Allows a SuperUser/Admin to create a new user account.
+
+  ## Body fields
+  | Field      | Required | Notes                                                    |
+  |------------|----------|----------------------------------------------------------|
+  | `name`     | Yes      | Full display name                                        |
+  | `email`    | Yes      | Must be unique                                           |
+  | `password` | Yes      | Plain text — hashed server-side                          |
+  | `empId`    | Yes      | Must be unique                                           |
+  | `role`     | No       | Default: `"Requestor"`. Other roles: RM, HOD, DeptHOD, Admin, SuperUser, HR, FoodCommittee, Management |
+  | `dept`     | No       | Department name. Default: `"Other"` if omitted. Use `dept` NOT `department` |
+  | `location` | No       | Location string                                          |
+  | `designation` | No    | Job title                                                |
+
+  ## Errors
+  - **400** — missing required fields or duplicate email/empId
+  - **403** — caller is not SuperUser or Admin
 }

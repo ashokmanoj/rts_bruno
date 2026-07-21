@@ -1,0 +1,95 @@
+meta {
+  name: Create Trailing Request
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/requests
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart {
+  purpose: Follow-up: additional action needed
+  description: This trailing ticket tracks the next step of request #{{requestId}}.
+  assignedDept: Software
+  threadParentId: {{requestId}}
+}
+
+script:post-response {
+  if (res.status === 201 || res.status === 200) {
+    const r = res.body;
+    console.log(`✅ Trailing request created | #${r.id} — "${r.purpose}"`);
+    console.log(`   threadParentId (root): ${r.threadParentId}`);
+    console.log(`   Tip: set requestId = ${r.id} and run "Get Thread Members" to see the full chain`);
+    bru.setEnvVar("requestId", String(r.id));
+  } else if (res.status === 400) {
+    console.log("❌ Validation error:", res.body.error);
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — include Bearer token");
+  } else {
+    console.log("❌", res.body?.error);
+  }
+}
+
+docs {
+  # Create Trailing Request
+
+  Creates a new request linked to an existing request via the trailing (thread) feature.
+  The new ticket inherits the thread chain — it always points to the **root** request,
+  even if `{{requestId}}` is itself a reply.
+
+  ## Endpoint
+  `POST /api/requests` (same as a normal request — thread link is set via `threadParentId`)
+
+  ## How trailing works
+  1. Open any ticket and click **"+ Add to Thread"**.
+  2. The Add Request modal pre-fills `threadParentId` = current ticket's ID.
+  3. On submit, the backend resolves the root:
+     - If the parent is already a reply, `threadParentId` is set to the grandparent (root).
+     - This guarantees all chained tickets point to the **same root**.
+  4. All members appear in each other's "Linked Requests" panel.
+
+  ## Body fields (multipart/form-data)
+  | Field           | Required | Description                                              |
+  |-----------------|----------|----------------------------------------------------------|
+  | `purpose`       | Yes      | Short title of the new trailing ticket                   |
+  | `threadParentId`| Yes      | ID of any member of the thread (root or reply — backend resolves root automatically) |
+  | `assignedDept`  | No       | Department to assign. Defaults to caller's own dept      |
+  | `description`   | No       | Full description of this follow-up                       |
+  | `dueDate`       | No       | ISO date string                                          |
+  | `assignedPersonEmpId` | No | empId of the person to assign                          |
+  | `assignedPersonName`  | No | Display name of assigned person                        |
+
+  ## Root resolution (backend)
+  If `threadParentId` points to a child request (not the root):
+  ```
+  Parent lookup → parent.threadParentId != null → use parent.threadParentId as root
+  ```
+  All thread members therefore have `threadParentId = rootId`.
+
+  ## Response
+  Full request object of the newly created ticket, including:
+  - `id` — new ticket ID
+  - `threadParentId` — resolved root ID (may differ from what you sent if you sent a child ID)
+
+  ## Example chain
+  ```
+  Ticket A (root, threadParentId = null)
+    └─ Ticket B (threadParentId = A) ← created from A
+    └─ Ticket C (threadParentId = A) ← created from B, backend resolves to A
+    └─ Ticket D (threadParentId = A) ← created from C, backend resolves to A
+  ```
+  All of B, C, D appear in A's "Linked Requests" panel — and vice versa.
+
+  ## Errors
+  | Status | Reason                          |
+  |--------|---------------------------------|
+  | 400    | `purpose` missing               |
+  | 401    | Missing or invalid JWT          |
+}

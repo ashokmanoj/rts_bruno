@@ -1,0 +1,60 @@
+meta {
+  name: Chat Presence Heartbeat
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/users/heartbeat
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.success) {
+    console.log("✅ Presence updated — user is online");
+  } else if (res.status === 401) {
+    console.log("❌ Unauthorized — include Bearer token");
+  } else {
+    console.log("❌", res.body?.error);
+  }
+}
+
+docs {
+  # Chat Presence Heartbeat
+
+  Updates the authenticated user's last-seen timestamp in the server-side presence map.
+  The frontend calls this on an interval while the chat panel is open.
+
+  ## Endpoint
+  `POST /api/users/heartbeat`
+
+  Note: this is **different** from `POST /api/auth/heartbeat` (which keeps the session alive).
+  This route specifically updates chat presence used for tick mark rendering.
+
+  ## Auth
+  Bearer token required (`authenticate` middleware).
+
+  ## Body
+  None.
+
+  ## How it's used
+  The server records `{ empId → lastSeen: Date.now() }` in an in-memory presence map.
+  When a chat message is delivered, the backend checks whether each recipient's `lastSeen`
+  is within a threshold (e.g. 30 s) to decide the tick mark status:
+  - Single tick  → sent (not yet delivered)
+  - Double tick  → delivered (recipient online)
+  - Blue tick    → read (recipient has opened the chat)
+
+  ## Response
+  ```json
+  { "success": true }
+  ```
+
+  ## Errors
+  - **401** — missing or invalid JWT
+}

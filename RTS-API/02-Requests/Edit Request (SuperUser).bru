@@ -55,6 +55,17 @@ docs {
   | assignedPersonEmpId  | string   | Assigned person's employee ID (or null to clear) |
   | assignedPersonName   | string   | Assigned person's display name (or null to clear)|
 
+  ## File attachments
+  This route uses multer (`upload.array("files", 10)`) — send as `multipart/form-data` if you want to re-attach files.
+  Bruno does not support multipart easily; use curl or Postman for file attachment testing:
+  ```
+  curl -X PATCH http://<host>/api/requests/<id>/edit \
+    -H "Authorization: Bearer <token>" \
+    -F "purpose=Updated title" \
+    -F "files=@/path/to/file.pdf"
+  ```
+  JSON body (no files) works fine for field-only edits.
+
   ## Errors
   - **403** — caller is not SuperUser
   - **404** — request ID not found

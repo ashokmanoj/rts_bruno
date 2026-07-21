@@ -50,7 +50,8 @@ docs {
 
   ## Access
   Any authenticated user — sends to your own devices by default.
-  SuperUser / Admin can pass `empId` to test any user's device.
+  SuperUser, Admin, Management, and DeptHOD (HR dept) can pass `empId` to test any user's device.
+  Non-admin users who omit `empId` will receive the notification on their own device (no 403).
 
   ## Body fields
   | Field | Required | Default                              | Description                              |

@@ -23,7 +23,7 @@ body:json {
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ Approved — managementStatus:", res.body.managementStatus, "| on:", res.body.managementDate);
+    console.log("✅ Approved — hodStatus:", res.body.hodStatus, "| on:", res.body.hodDate);
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error);
   } else if (res.status === 403) {
@@ -39,7 +39,7 @@ docs {
   # Management — Approve Request
 
   Approves a request on behalf of the Management role.
-  This sets `managementStatus = "Approved"` and appends an approval card to the chat thread.
+  This sets `hodStatus = "Approved"` and appends an approval card to the chat thread.
 
   ## Endpoint
   `PATCH /api/management/requests/:id/approval`
@@ -47,9 +47,13 @@ docs {
   ## Request body
   | Field      | Type   | Required | Notes                                              |
   |------------|--------|----------|----------------------------------------------------|
-  | `decision` | string | Yes      | `"Approved"` \| `"Rejected"` \| `"Checking"`      |
+  | `decision` | string | Yes      | `"Approved"` \| `"Rejected"` \| `"Checking"` \| `"Close"` |
   | `comment`  | string | No       | Appears in the chat thread                         |
 
   ## Response
-  Returns the updated full request object with `managementStatus: "Approved"`.
+  Returns the updated full request object. Key field: `hodStatus: "Approved"` (and `hodDate`).
+
+  ## Note
+  This route writes to `hodStatus`/`hodDate` — NOT `managementStatus`/`managementDate`.
+  Those two columns are separate and are written only by the `PATCH /requests/:id/approval` route when called by a Management-role user.
 }

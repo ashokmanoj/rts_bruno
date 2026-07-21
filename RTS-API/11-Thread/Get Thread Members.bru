@@ -1,0 +1,82 @@
+meta {
+  name: Get Thread Members
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/{{requestId}}/thread
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const { rootId, isReply, replyCount, members } = res.body;
+    console.log(`✅ Thread root: #${rootId} | total members: ${replyCount} | this request is a reply: ${isReply}`);
+    members.forEach(m => console.log(`   #${m.id} — ${m.purpose} (${m.assignedStatus})${m.id === rootId ? " [ROOT]" : ""}`));
+    if (members.length === 0) console.log("   No other members — standalone ticket");
+  } else if (res.status === 403) {
+    console.log("❌ Forbidden — no access to this request");
+  } else if (res.status === 404) {
+    console.log("❌ Request not found — check requestId env var");
+  } else {
+    console.log("❌", res.body?.error);
+  }
+}
+
+docs {
+  # Get Thread Members
+
+  Returns the full thread for a given request — the root + all replies —
+  **excluding** the current request itself.
+
+  Used by the "Linked Requests" panel in the ticket detail view to show
+  every ticket chained together via the trailing feature.
+
+  ## Endpoint
+  `GET /api/requests/:id/thread`
+
+  ## How threads / trailing works
+  - The very first ticket is the **root** (`threadParentId = null`).
+  - Every trailing ticket created from any member of the thread points to the **root** (`threadParentId = rootId`).
+  - This means all members — regardless of how deep the chain goes — are siblings of the root.
+  - Adding to a thread from a child ticket automatically re-resolves to the root on the backend.
+
+  ## Response shape
+  ```json
+  {
+    "rootId":     232,
+    "isReply":    true,
+    "replyCount": 3,
+    "members": [
+      { "id": 232, "purpose": "Original request", "assignedStatus": "Open", ... },
+      { "id": 245, "purpose": "Follow-up ticket", "assignedStatus": "Pending Acknowledgement", ... }
+    ]
+  }
+  ```
+
+  | Field        | Type    | Description                                              |
+  |--------------|---------|----------------------------------------------------------|
+  | `rootId`     | number  | ID of the root (first) request in the thread             |
+  | `isReply`    | boolean | Whether `{{requestId}}` is a reply (not the root)        |
+  | `replyCount` | number  | Total members in the thread including the current request|
+  | `members`    | array   | All other thread members (full request objects)          |
+
+  Each member in `members` is a full request object — same shape as `GET /requests/:id`.
+
+  ## Rules
+  - Requires valid JWT.
+  - Caller must have normal access to `{{requestId}}` (same rules as `GET /requests/:id`).
+  - Returns `members: []` and `replyCount: 1` for standalone tickets (no thread).
+
+  ## Errors
+  | Status | Reason                    |
+  |--------|---------------------------|
+  | 403    | No access to this request |
+  | 404    | Request not found         |
+}
