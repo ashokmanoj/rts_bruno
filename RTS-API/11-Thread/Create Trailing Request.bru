@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{baseUrl}}/requests
-  body: multipartForm
+  body: multipart-form
   auth: bearer
 }
 
@@ -14,8 +14,8 @@ auth:bearer {
   token: {{token}}
 }
 
-body:multipart {
-  purpose: Follow-up: additional action needed
+body:multipart-form {
+  purpose: Follow-up - additional action needed
   description: This trailing ticket tracks the next step of request #{{requestId}}.
   assignedDept: Software
   threadParentId: {{requestId}}
@@ -23,17 +23,11 @@ body:multipart {
 
 script:post-response {
   if (res.status === 201 || res.status === 200) {
-    const r = res.body;
-    console.log(`✅ Trailing request created | #${r.id} — "${r.purpose}"`);
-    console.log(`   threadParentId (root): ${r.threadParentId}`);
-    console.log(`   Tip: set requestId = ${r.id} and run "Get Thread Members" to see the full chain`);
-    bru.setEnvVar("requestId", String(r.id));
-  } else if (res.status === 400) {
-    console.log("❌ Validation error:", res.body.error);
-  } else if (res.status === 401) {
-    console.log("❌ Unauthorized — include Bearer token");
+    bru.setEnvVar("requestId", String(res.body.id));
+    console.log("Trailing request created: #" + res.body.id + " — " + res.body.purpose);
+    console.log("threadParentId (root): " + res.body.threadParentId);
   } else {
-    console.log("❌", res.body?.error);
+    console.log("Error " + res.status + ":", res.body && res.body.error);
   }
 }
 
