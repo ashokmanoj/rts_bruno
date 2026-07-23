@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/requests
+  url: {{baseUrl}}/requests/trailingreq
   body: multipart-form
   auth: bearer
 }
@@ -33,14 +33,14 @@ script:post-response {
 
 docs {
   # Create Trailing Request
-
+  
   Creates a new request linked to an existing request via the trailing (thread) feature.
   The new ticket inherits the thread chain — it always points to the **root** request,
   even if `{{requestId}}` is itself a reply.
-
+  
   ## Endpoint
   `POST /api/requests` (same as a normal request — thread link is set via `threadParentId`)
-
+  
   ## How trailing works
   1. Open any ticket and click **"+ Add to Thread"**.
   2. The Add Request modal pre-fills `threadParentId` = current ticket's ID.
@@ -48,7 +48,7 @@ docs {
      - If the parent is already a reply, `threadParentId` is set to the grandparent (root).
      - This guarantees all chained tickets point to the **same root**.
   4. All members appear in each other's "Linked Requests" panel.
-
+  
   ## Body fields (multipart/form-data)
   | Field           | Required | Description                                              |
   |-----------------|----------|----------------------------------------------------------|
@@ -59,19 +59,19 @@ docs {
   | `dueDate`       | No       | ISO date string                                          |
   | `assignedPersonEmpId` | No | empId of the person to assign                          |
   | `assignedPersonName`  | No | Display name of assigned person                        |
-
+  
   ## Root resolution (backend)
   If `threadParentId` points to a child request (not the root):
   ```
   Parent lookup → parent.threadParentId != null → use parent.threadParentId as root
   ```
   All thread members therefore have `threadParentId = rootId`.
-
+  
   ## Response
   Full request object of the newly created ticket, including:
   - `id` — new ticket ID
   - `threadParentId` — resolved root ID (may differ from what you sent if you sent a child ID)
-
+  
   ## Example chain
   ```
   Ticket A (root, threadParentId = null)
@@ -80,7 +80,7 @@ docs {
     └─ Ticket D (threadParentId = A) ← created from C, backend resolves to A
   ```
   All of B, C, D appear in A's "Linked Requests" panel — and vice versa.
-
+  
   ## Errors
   | Status | Reason                          |
   |--------|---------------------------------|
