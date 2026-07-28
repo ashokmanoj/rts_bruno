@@ -1,0 +1,41 @@
+meta {
+  name: Admin - Update Location
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/admin/locations/{{locId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Location Name",
+    "isActive": true
+  }
+}
+
+docs {
+  # Admin - Update Location
+
+  Updates name or isActive status of a location.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Body
+  | Field    | Required | Description              |
+  |----------|----------|--------------------------|
+  | name     | No       | New unique location name |
+  | isActive | No       | true or false            |
+
+  ## Errors
+  | Status | Reason                        |
+  |--------|-------------------------------|
+  | 409    | Location name already exists  |
+  | 403    | Insufficient role             |
+}

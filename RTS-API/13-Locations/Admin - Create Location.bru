@@ -1,0 +1,49 @@
+meta {
+  name: Admin - Create Location
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/locations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "New Location Name"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("locId", String(res.body.id));
+    console.log("Location created: #" + res.body.id + " - " + res.body.name);
+  } else {
+    console.log("Error " + res.status + ": " + (res.body && res.body.error));
+  }
+}
+
+docs {
+  # Admin - Create Location
+
+  Creates a new location entry.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Body
+  | Field | Required | Description         |
+  |-------|----------|---------------------|
+  | name  | Yes      | Unique location name |
+
+  ## Errors
+  | Status | Reason                    |
+  |--------|---------------------------|
+  | 400    | name missing              |
+  | 409    | Location already exists   |
+  | 403    | Insufficient role         |
+}

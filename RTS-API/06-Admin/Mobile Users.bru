@@ -1,0 +1,54 @@
+meta {
+  name: Mobile Users
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/admin/mobile-users
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Mobile Users
+
+  Returns all users who have the Android app installed (have an FCM token registered).
+  Requires: SuperUser only
+
+  ## Response
+  Array of user objects:
+  ```json
+  [
+    {
+      "empId": "AI-2300",
+      "name": "John Doe",
+      "dept": "Software",
+      "location": "Bangalore",
+      "role": "Requestor",
+      "designation": "Developer",
+      "isActive": true,
+      "isOnline": true,
+      "lastSeen": "2026-07-28T10:30:00.000Z",
+      "lastLogin": "2026-07-28T09:00:00.000Z",
+      "appInstalledAt": "2026-06-01T08:00:00.000Z"
+    },
+    ...
+  ]
+  ```
+
+  ## Fields
+  | Field          | Description                                      |
+  |----------------|--------------------------------------------------|
+  | isOnline       | true if heartbeat received within last 60 seconds |
+  | lastSeen       | Last activity timestamp                          |
+  | appInstalledAt | When the FCM token was first registered          |
+
+  ## Errors
+  | Status | Reason              |
+  |--------|---------------------|
+  | 403    | SuperUser only      |
+}

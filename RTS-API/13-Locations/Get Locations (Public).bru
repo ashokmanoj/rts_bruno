@@ -1,0 +1,23 @@
+meta {
+  name: Get Locations (Public)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/locations
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Locations (Public)
+
+  Returns all active locations for use in dropdowns.
+  No authentication required.
+
+  ## Response
+  ```json
+  { "locations": ["Agartala", "Bangalore", ...] }
+  ```
+}

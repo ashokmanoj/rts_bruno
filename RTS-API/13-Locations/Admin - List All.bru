@@ -1,0 +1,30 @@
+meta {
+  name: Admin - List All
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/locations
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - List All Locations
+
+  Returns all locations (active and inactive) for admin management.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Response
+  Array of location objects:
+  ```json
+  [
+    { "id": 1, "name": "Guwahati", "isActive": true, "createdAt": "..." },
+    ...
+  ]
+  ```
+}

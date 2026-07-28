@@ -1,0 +1,28 @@
+meta {
+  name: Admin - Delete Location
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/admin/locations/{{locId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - Delete Location
+
+  Permanently deletes a location by ID.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Errors
+  | Status | Reason            |
+  |--------|-------------------|
+  | 403    | Insufficient role |
+  | 404    | Not found         |
+}
