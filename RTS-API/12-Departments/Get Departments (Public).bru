@@ -1,0 +1,26 @@
+meta {
+  name: Get Departments (Public)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/departments
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Departments (Public)
+
+  Returns all active departments from the departments table, sorted alphabetically.
+  Used to populate department dropdowns in the frontend.
+
+  ## Response
+  ```json
+  { "departments": ["Academics-Assam", "HR", "Software", ...] }
+  ```
+}

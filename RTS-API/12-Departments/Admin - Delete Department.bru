@@ -1,0 +1,23 @@
+meta {
+  name: Admin - Delete Department
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/admin/departments/{{deptId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - Delete Department
+
+  Permanently deletes a department record.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  Use PATCH isActive:false to soft-disable instead of deleting.
+}

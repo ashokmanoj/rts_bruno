@@ -1,0 +1,35 @@
+meta {
+  name: Admin - Update Department
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/admin/departments/{{deptId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Department Name",
+    "isActive": true
+  }
+}
+
+docs {
+  # Admin - Update Department
+
+  Updates a department name and/or active status.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Body (all fields optional)
+  | Field    | Description                   |
+  |----------|-------------------------------|
+  | name     | New name for the department   |
+  | isActive | true to activate, false to deactivate |
+}

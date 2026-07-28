@@ -1,0 +1,49 @@
+meta {
+  name: Admin - Create Department
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/departments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "New Department Name"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("deptId", String(res.body.id));
+    console.log("Department created: #" + res.body.id + " - " + res.body.name);
+  } else {
+    console.log("Error " + res.status + ": " + (res.body && res.body.error));
+  }
+}
+
+docs {
+  # Admin - Create Department
+
+  Creates a new department entry.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Body
+  | Field | Required | Description          |
+  |-------|----------|----------------------|
+  | name  | Yes      | Unique department name |
+
+  ## Errors
+  | Status | Reason                        |
+  |--------|-------------------------------|
+  | 400    | name missing                  |
+  | 409    | Department already exists     |
+  | 403    | Insufficient role             |
+}

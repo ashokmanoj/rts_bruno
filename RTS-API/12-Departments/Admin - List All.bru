@@ -1,0 +1,30 @@
+meta {
+  name: Admin - List All
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/departments
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - List All Departments
+
+  Returns all departments (active and inactive) for admin management.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Response
+  Array of department objects:
+  ```json
+  [
+    { "id": 1, "name": "Software", "isActive": true, "createdAt": "..." },
+    ...
+  ]
+  ```
+}
