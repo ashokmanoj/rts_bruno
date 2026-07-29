@@ -16,7 +16,7 @@ auth:bearer {
 
 body:json {
   {
-    "name": "New Department Name"
+    "name": "Test dept"
   }
 }
 
@@ -31,15 +31,15 @@ script:post-response {
 
 docs {
   # Admin - Create Department
-
+  
   Creates a new department entry.
   Requires: SuperUser / Admin / Management / HR DeptHOD
-
+  
   ## Body
   | Field | Required | Description          |
   |-------|----------|----------------------|
   | name  | Yes      | Unique department name |
-
+  
   ## Errors
   | Status | Reason                        |
   |--------|-------------------------------|
