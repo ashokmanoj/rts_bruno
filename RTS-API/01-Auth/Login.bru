@@ -28,7 +28,7 @@ script:post-response {
     } else {
       bru.setEnvVar("token", res.body.token);
       console.log("✅ Token saved");
-      console.log("👤 Logged in as:", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept);
+      console.log("👤 Logged in as:", res.body.user.name, "| Role:", res.body.user.role, "| Dept:", res.body.user.dept, "| isActive:", res.body.user.isActive);
     }
   } else {
     console.log("❌ Login failed:", res.body.error);
