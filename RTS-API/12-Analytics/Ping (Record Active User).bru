@@ -17,7 +17,8 @@ auth:bearer {
 body:json {
   {
     "timestamp": "2026-10-08T10:30:00.000Z",
-    "platform": "mobile"
+    "platform": "mobile",
+    "appVersion": 1
   }
 }
 
@@ -33,6 +34,7 @@ script:post-response {
     console.log("  Date:       ", r.date);
     console.log("  Last Ping:  ", r.lastPing);
     console.log("  Platform:   ", r.platform);
+    console.log("  App Version:", r.appVersion);
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error);
   } else if (res.status === 401) {
@@ -49,15 +51,16 @@ docs {
   It records that the authenticated user was active on today's date.
 
   Only **one row per user per day** is stored — calling ping multiple times in the same day
-  is completely safe; it just updates the `lastPing` timestamp. No duplicates.
+  is completely safe; it just updates the `lastPing` timestamp and `appVersion`. No duplicates.
 
   ## When to call (Flutter)
   ```dart
   // Call on app foreground / resume, and once at login:
   Future<void> recordActivity() async {
     await api.post('/analytics/ping', body: {
-      "timestamp": DateTime.now().toUtc().toIso8601String(),
-      "platform": "mobile",
+      "timestamp":  DateTime.now().toUtc().toIso8601String(),
+      "platform":   "mobile",
+      "appVersion": 1,   // your app's integer build number
     });
   }
 
@@ -66,10 +69,11 @@ docs {
   ```
 
   ## Body fields
-  | Field     | Required | Description                                               |
-  |-----------|----------|-----------------------------------------------------------|
-  | timestamp | NO       | ISO-8601 UTC string. Defaults to server time if omitted.  |
-  | platform  | NO       | "mobile", "tablet", etc. Defaults to "mobile".            |
+  | Field      | Type    | Required | Description                                               |
+  |------------|---------|----------|-----------------------------------------------------------|
+  | timestamp  | string  | NO       | ISO-8601 UTC string. Defaults to server time if omitted.  |
+  | platform   | string  | NO       | "mobile", "tablet", etc. Defaults to "mobile".            |
+  | appVersion | integer | NO       | App build/version number (e.g. 1, 2, 12). Defaults to 0. |
 
   ## Response
   ```json
@@ -84,7 +88,8 @@ docs {
       "role":        "Requestor",
       "date":        "2026-10-08",
       "lastPing":    "2026-10-08T05:00:00.000Z",
-      "platform":    "mobile"
+      "platform":    "mobile",
+      "appVersion":  1
     }
   }
   ```
