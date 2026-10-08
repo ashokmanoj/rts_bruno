@@ -1,0 +1,73 @@
+meta {
+  name: Get Daily Active Users (Detail by Date)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/analytics/dau/2026-10-08
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log(`✅ ${res.body.date} — ${res.body.count} active users`);
+    (res.body.users || []).forEach(u =>
+      console.log(`  ${u.empId} | ${u.name} (${u.dept}) — last ping: ${u.lastPing}`)
+    );
+  } else if (res.status === 400) {
+    console.log("❌ Bad date format — use YYYY-MM-DD in the URL");
+  } else if (res.status === 403) {
+    console.log("❌ Access denied — SuperUser / Admin / Management only");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Daily Active Users — Detail for One Date
+
+  Returns the full list of users who were active on a specific date,
+  including their name, department, and last ping time.
+
+  Replace `2026-10-08` in the URL with the date you want to inspect.
+
+  Only **SuperUser**, **Admin**, and **Management** roles can call this.
+
+  ## URL
+  ```
+  GET /api/analytics/dau/:date
+  ```
+  | Param | Required | Description              |
+  |-------|----------|--------------------------|
+  | date  | YES      | "YYYY-MM-DD" in the path |
+
+  ## Response
+  ```json
+  {
+    "date":  "2026-10-08",
+    "count": 42,
+    "users": [
+      {
+        "empId":       "EMP-001",
+        "name":        "Lakshmi",
+        "dept":        "Software",
+        "designation": "Developer",
+        "lastPing":    "2026-10-08T07:45:00.000Z",
+        "platform":    "mobile"
+      },
+      ...
+    ]
+  }
+  ```
+
+  ## Errors
+  - **400** — date is not in YYYY-MM-DD format
+  - **401** — missing or invalid JWT
+  - **403** — role not allowed (only SuperUser / Admin / Management)
+}

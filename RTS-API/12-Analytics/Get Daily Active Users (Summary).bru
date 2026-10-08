@@ -1,0 +1,65 @@
+meta {
+  name: Get Daily Active Users (Summary)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/analytics/dau
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  from: 2026-09-01
+  to: 2026-10-08
+  ~platform: mobile
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const days = res.body.days || [];
+    console.log(`✅ Daily Active Users (${res.body.from} → ${res.body.to})`);
+    days.forEach(d => console.log(`  ${d.date}: ${d.count} users`));
+  } else if (res.status === 403) {
+    console.log("❌ Access denied — SuperUser / Admin / Management only");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Daily Active Users — Summary
+
+  Returns the count of unique active users per day for the given date range.
+  Only **SuperUser**, **Admin**, and **Management** roles can call this.
+
+  ## Query params
+  | Param    | Required | Default          | Description                          |
+  |----------|----------|------------------|--------------------------------------|
+  | from     | NO       | 30 days ago      | Start date "YYYY-MM-DD" (inclusive)  |
+  | to       | NO       | today            | End date   "YYYY-MM-DD" (inclusive)  |
+  | platform | NO       | all              | Filter by platform ("mobile", etc.)  |
+
+  ## Response
+  ```json
+  {
+    "from": "2026-09-01",
+    "to":   "2026-10-08",
+    "days": [
+      { "date": "2026-10-08", "count": 42 },
+      { "date": "2026-10-07", "count": 38 },
+      ...
+    ]
+  }
+  ```
+  Days with zero active users are not included in the list.
+
+  ## Errors
+  - **401** — missing or invalid JWT
+  - **403** — role not allowed (only SuperUser / Admin / Management)
+}
