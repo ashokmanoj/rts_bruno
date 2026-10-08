@@ -22,8 +22,17 @@ body:json {
 }
 
 script:post-response {
-  if (res.status === 200 && res.body.ok) {
-    console.log("✅ Ping recorded for date:", res.body.date);
+  if (res.status === 200 && res.body.success) {
+    const r = res.body.recorded;
+    console.log("✅", res.body.message);
+    console.log("  empId:      ", r.empId);
+    console.log("  Name:       ", r.name);
+    console.log("  Dept:       ", r.dept);
+    console.log("  Designation:", r.designation);
+    console.log("  Role:       ", r.role);
+    console.log("  Date:       ", r.date);
+    console.log("  Last Ping:  ", r.lastPing);
+    console.log("  Platform:   ", r.platform);
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error);
   } else if (res.status === 401) {
@@ -64,7 +73,20 @@ docs {
 
   ## Response
   ```json
-  { "ok": true, "date": "2026-10-08" }
+  {
+    "success": true,
+    "message": "Activity recorded successfully",
+    "recorded": {
+      "empId":       "EMP-001",
+      "name":        "Lakshmi",
+      "dept":        "Software",
+      "designation": "Developer",
+      "role":        "Requestor",
+      "date":        "2026-10-08",
+      "lastPing":    "2026-10-08T05:00:00.000Z",
+      "platform":    "mobile"
+    }
+  }
   ```
 
   ## Errors
