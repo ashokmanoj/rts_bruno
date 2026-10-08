@@ -18,7 +18,8 @@ body:json {
   {
     "timestamp": "2026-10-08T10:30:00.000Z",
     "platform": "mobile",
-    "appVersion": 1
+    "appVersion": 1,
+    "versionName": "1.0.0"
   }
 }
 
@@ -35,6 +36,7 @@ script:post-response {
     console.log("  Last Ping:  ", r.lastPing);
     console.log("  Platform:   ", r.platform);
     console.log("  App Version:", r.appVersion);
+    console.log("  Version Name:", r.versionName);
   } else if (res.status === 400) {
     console.log("❌ Bad request:", res.body.error);
   } else if (res.status === 401) {
@@ -73,7 +75,8 @@ docs {
   |------------|---------|----------|-----------------------------------------------------------|
   | timestamp  | string  | NO       | ISO-8601 UTC string. Defaults to server time if omitted.  |
   | platform   | string  | NO       | "mobile", "tablet", etc. Defaults to "mobile".            |
-  | appVersion | integer | NO       | App build/version number (e.g. 1, 2, 12). Defaults to 0. |
+  | appVersion  | integer | NO       | App build/version number (e.g. 1, 2, 12). Defaults to 0.    |
+  | versionName | string  | NO       | Human-readable version string (e.g. "1.0.0"). Defaults to "". |
 
   ## Response
   ```json
@@ -89,7 +92,8 @@ docs {
       "date":        "2026-10-08",
       "lastPing":    "2026-10-08T05:00:00.000Z",
       "platform":    "mobile",
-      "appVersion":  1
+      "appVersion":  1,
+      "versionName": "1.0.0"
     }
   }
   ```
