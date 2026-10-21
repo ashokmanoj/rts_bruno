@@ -1,0 +1,84 @@
+meta {
+  name: Ticket Analytics
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/admin/ticket-analytics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const stages = {};
+    res.body.tickets.forEach(t => { stages[t.stage] = (stages[t.stage] || 0) + 1; });
+    console.log("✅ Tickets:", res.body.tickets.length, "| Stages:", JSON.stringify(stages));
+    console.log("   HODs with teams:", Object.keys(res.body.teamSizeByHod).length, "| Generated:", res.body.generatedAt);
+  } else if (res.status === 403) {
+    console.log("❌ Access denied — needs SuperUser / Admin / Management / HR DeptHOD");
+  } else if (res.status === 401) {
+    console.log("❌ Not logged in — run Login first");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Ticket Analytics
+
+  Powers the dashboard's **Dept-wise Analytics**, **HOD-wise Analytics** and **Performance Charts** tabs.
+  Returns one compact row per ticket; the frontend does all grouping, date-range and department filtering.
+
+  **Access:** SuperUser, Admin, Management, or DeptHOD of HR (403 otherwise).
+  Broadcast announcements are excluded.
+
+  ## Response
+
+  ```json
+  {
+    "tickets": [
+      {
+        "id": 2119,
+        "purpose": "Time",
+        "requestor": "Lakshmi",
+        "requestorEmpId": "AC-1050",
+        "dept": "Software",
+        "assignedDept": "Software",
+        "hodEmpId": "AC-1030",
+        "hodName": "Nithish V",
+        "hodDept": "Software",
+        "stage": "resolved",
+        "awaitingAck": false,
+        "createdAt": "2026-10-17T09:12:00.000Z",
+        "resolvedAt": "2026-10-19T02:00:00.000Z",
+        "durationHrs": 40.8
+      }
+    ],
+    "teamSizeByHod": { "AC-1030": 13 },
+    "generatedAt": "2026-10-21T10:00:00.000Z"
+  }
+  ```
+
+  ## Stage (exactly one per ticket — counts always add up to the total)
+
+  | stage | meaning |
+  |---|---|
+  | `rejected` | any approver (RM / HOD / DeptHOD / Management / assigned RM / assigned HOD) rejected it |
+  | `resolved` | resolution submitted (incl. awaiting acknowledgement — `awaitingAck: true`) or closed |
+  | `approved` | approved by someone, work still in progress |
+  | `pending`  | checking / forwarded, awaiting a decision |
+  | `open`     | nobody has acted yet |
+
+  ## Fields
+
+  - `dept` — requestor's department (Raised by); `assignedDept` — handling department (Assigned to)
+  - `hodEmpId` / `hodName` / `hodDept` — the **requestor's** HOD (null if none set)
+  - `durationHrs` — hours from creation to resolution / rejection; `null` while in progress
+  - `teamSizeByHod` — active users reporting to each HOD (keyed by HOD empId)
+}
