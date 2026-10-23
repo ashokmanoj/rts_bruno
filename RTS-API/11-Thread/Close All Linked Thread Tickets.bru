@@ -1,0 +1,70 @@
+meta {
+  name: Close All Linked Thread Tickets
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/close
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  note: Resolved for the whole thread — all linked requests handled together.
+  closeThread: true
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const tc = res.body.threadClose || { closed: [], skipped: [] };
+    console.log("⏳ Closed #" + res.body.id, "| Status:", res.body.assignedStatus);
+    console.log("🔗 Linked tickets closed:", tc.closed.map(r => r.id));
+    if (tc.skipped.length) console.log("⚠️ Skipped:", tc.skipped);
+  } else if (res.status === 403) {
+    console.log("❌ Not authorized to close this ticket");
+  } else if (res.status === 409) {
+    console.log("❌ This ticket is already closed or pending acknowledgement");
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Close All Linked Thread Tickets
+
+  Same endpoint as **02-Requests → Close Ticket**, with `closeThread=true`.
+  Used by the "Close all linked thread tickets" button in the web app.
+
+  ## What it does
+  1. Closes `{{requestId}}` exactly like a normal close (→ "Pending Acknowledgement").
+  2. Finds the thread (root + all replies) and closes every other **open** ticket in it
+     with the same resolution note and attachments (files are uploaded once and shared).
+  3. Already-closed / pending-acknowledgement tickets are left alone.
+  4. Tickets the caller isn't authorized to close are **skipped**, not failed.
+
+  ## Body (multipart-form)
+  | Field       | Type   | Description                              |
+  |-------------|--------|------------------------------------------|
+  | note        | string | Resolution note (used for every ticket)  |
+  | files       | File   | Optional attachments, up to 10           |
+  | closeThread | "true" | Close all linked tickets too             |
+
+  ## Response
+  The closed request, plus:
+  ```json
+  "threadClose": {
+    "closed":  [ { "id": 101, "assignedStatus": "Pending Acknowledgement", ... } ],
+    "skipped": [ { "id": 102, "reason": "Not authorized" } ]
+  }
+  ```
+
+  ## Errors (for `{{requestId}}` itself)
+  - **403** — not authorized to close it
+  - **404** — request not found
+  - **409** — already closed or pending acknowledgement
+}

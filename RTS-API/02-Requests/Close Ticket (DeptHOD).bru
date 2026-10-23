@@ -16,6 +16,7 @@ auth:bearer {
 
 body:multipart-form {
   note: Issue has been fully resolved. All requirements fulfilled and delivery confirmed.
+  ~closeThread: true
 }
 
 script:post-response {
@@ -23,6 +24,10 @@ script:post-response {
     console.log("⏳ Resolution submitted | Status:", res.body.assignedStatus);
     console.log("   Resolved by:", res.body.resolvedBy);
     console.log("   Now waiting for requestor acknowledgement.");
+    if (res.body.threadClose) {
+      console.log("🔗 Linked tickets closed:", res.body.threadClose.closed.map(r => r.id));
+      console.log("   Skipped:", res.body.threadClose.skipped);
+    }
   } else if (res.status === 403) {
     console.log("❌ Forbidden — login as DeptHOD first");
   } else if (res.status === 409) {
@@ -52,7 +57,20 @@ docs {
   | Field | Type   | Description                              |
   |-------|--------|------------------------------------------|
   | note  | string | Resolution note shown in the system card |
-  | file  | File   | Resolution document/photo (optional)     |
+  | files | File   | Resolution documents/photos (optional, up to 10) |
+  | closeThread | "true" | Thread tickets only — also close every other open ticket linked in the same thread (disabled by default; enable to test) |
+
+  ## closeThread=true
+  The current ticket is closed first; then every other open ticket in its thread is closed
+  with the same note and attachments. Linked tickets the caller isn't allowed to close are
+  **skipped** (not an error). The response then also contains:
+  ```json
+  "threadClose": {
+    "closed":  [ { ...formatted request... } ],
+    "skipped": [ { "id": 123, "reason": "Not authorized" } ]
+  }
+  ```
+  See **11-Thread → Close All Linked Thread Tickets**.
 
   ## Error responses
   - **403** — not authorized to close (wrong role or same-dept request)

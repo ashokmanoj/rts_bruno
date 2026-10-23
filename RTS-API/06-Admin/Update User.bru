@@ -24,15 +24,16 @@ body:json {
     "designation": "Senior Developer",
     "location": "Bangalore",
     "rmEmpId": "GN-01",
-    "hodEmpId": "GN-1042"
+    "hodEmpId": "GN-1042",
+    "newEmpId": "EMP-123"
   }
 }
 
 script:post-response {
   if (res.status === 200) {
-    console.log("✅ User updated:", res.body.user?.name, "| Role:", res.body.user?.role);
+    console.log("✅ User updated:", res.body.user?.empId, "|", res.body.user?.name, "| Role:", res.body.user?.role);
   } else if (res.status === 403) {
-    console.log("❌ Access denied — Admin/SuperUser only");
+    console.log("❌", res.body.error || "Access denied");
   } else {
     console.log("❌", res.body.error);
   }
@@ -42,14 +43,25 @@ docs {
   # Update User
 
   Allows Admin, Management, HR DeptHOD, or SuperUser to update an existing user's profile.
-  The user's `empId` cannot be changed — it is the URL parameter.
 
   ## URL Parameter
-  Replace `EMP-123` with the target user's `empId`.
+  Replace `EMP-123` with the target user's **current** `empId`.
+
+  ## Changing the Employee ID
+  Send `newEmpId` with a different value to rename the user's `empId`.
+  - **Only SuperUser or HR DeptHOD** may do this — anyone else gets **403**.
+  - Leave `newEmpId` out (or equal to the current ID) to keep the ID unchanged.
+  - Everything that references the old ID moves to the new one in a single transaction:
+    requests, chat messages, roles, login logs, sessions, read receipts, food
+    subscriptions/cancellations/manual entries, push & FCM tokens, other users' `rmEmpId`/`hodEmpId`,
+    and requests' `assignedPersonEmpId` / `ccEmpIds` lists.
+  - The user is force-logged-out on mobile and must log in again with the new ID.
+  - `GN-01` and `GN-02` cannot be renamed (Management routing is hard-coded to them).
 
   ## Body fields (all optional — only send fields to change)
   | Field       | Type   | Description                              |
   |-------------|--------|------------------------------------------|
+  | newEmpId    | string | New Employee ID — SuperUser / HR DeptHOD only |
   | name        | string | Full display name                        |
   | email       | string | Email address (stored lowercase)         |
   | phone       | string | Phone number                             |
@@ -61,6 +73,7 @@ docs {
   | hodEmpId    | string | HOD's empId (or null)                    |
 
   ## Errors
-  - **403** — caller does not have admin-like access
+  - **400** — `newEmpId` already used by another user, `GN-01`/`GN-02` rename attempt, or RM/HOD ID not found
+  - **403** — caller does not have admin-like access, or non-SuperUser/HR trying to change `newEmpId`
   - **404** — empId not found in database
 }
