@@ -21,7 +21,7 @@ script:post-response {
     console.log("✅ Tickets:", res.body.tickets.length, "| Stages:", JSON.stringify(stages));
     console.log("   HODs with teams:", Object.keys(res.body.teamSizeByHod).length, "| Generated:", res.body.generatedAt);
   } else if (res.status === 403) {
-    console.log("❌ Access denied — needs SuperUser / Admin / Management / HR DeptHOD");
+    console.log("❌ Access denied — Admin role only");
   } else if (res.status === 401) {
     console.log("❌ Not logged in — run Login first");
   } else {
@@ -35,7 +35,7 @@ docs {
   Powers the dashboard's **Dept-wise Analytics**, **HOD-wise Analytics** and **Performance Charts** tabs.
   Returns one compact row per ticket; the frontend does all grouping, date-range and department filtering.
 
-  **Access:** SuperUser, Admin, Management, or DeptHOD of HR (403 otherwise).
+  **Access:** Admin role only (403 for every other role).
   Broadcast announcements are excluded.
 
   ## Response
