@@ -1,0 +1,38 @@
+meta {
+  name: SuperUser - List Role Settings
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/role-settings
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # SuperUser - List Role Settings
+
+  All 12 fixed roles with their display settings and how many users hold each.
+  Roles with no saved row return their defaults.
+  Requires: SuperUser (403 otherwise).
+
+  ## Response
+  ```json
+  [
+    {
+      "role": "Requestor", "label": "Requestor", "description": "Raises requests",
+      "isActive": true, "sortOrder": 1, "userCount": 210, "locked": false
+    },
+    {
+      "role": "SuperUser", "label": "SuperUser", "description": "...",
+      "isActive": false, "sortOrder": 12, "userCount": 2, "locked": true
+    }
+  ]
+  ```
+  `isActive` = shown in the user-form dropdown. `locked` roles can never be shown.
+}

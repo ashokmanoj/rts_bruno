@@ -1,5 +1,5 @@
 meta {
-  name: Edit Request (SuperUser)
+  name: Edit Request
   type: http
   seq: 20
 }
@@ -30,7 +30,9 @@ script:post-response {
   if (res.status === 200) {
     console.log("✅ Request edited | ID:", res.body.id, "| Purpose:", res.body.purpose);
   } else if (res.status === 403) {
-    console.log("❌ Forbidden — SuperUser only");
+    console.log("❌ Forbidden — only the requestor can edit this request");
+  } else if (res.status === 409) {
+    console.log("🔒 Locked —", res.body.error);
   } else if (res.status === 404) {
     console.log("❌ Request not found");
   } else {
@@ -39,10 +41,14 @@ script:post-response {
 }
 
 docs {
-  # Edit Request (SuperUser only)
+  # Edit Request
 
-  Allows a SuperUser to edit core fields of any request.
-  **All existing chat messages for the ticket are deleted** when this endpoint is called — no edit notification is logged.
+  Edits core fields of a request.
+  - **Requestor (owner)** — allowed only while nobody else has approved, forwarded, marked Checking,
+    closed, or replied in chat on the ticket.
+  - **SuperUser** — allowed anytime.
+
+  Each edit logs a system chat message ("Request edited by …").
 
   ## Editable fields (all optional — only send what you want to change)
   | Field                | Type     | Description                                      |
@@ -54,10 +60,13 @@ docs {
   | dueDate              | ISO date | Due date (or null to clear)                      |
   | assignedPersonEmpId  | string   | Assigned person's employee ID (or null to clear) |
   | assignedPersonName   | string   | Assigned person's display name (or null to clear)|
+  | ccDepts              | string   | Comma-separated CC departments (or "" to clear)  |
+  | ccEmpIds             | string   | Comma-separated CC employee IDs (or "" to clear) |
+  | ccPersonNames        | string   | Comma-separated CC names (or "" to clear)        |
 
   ## File attachments
-  This route uses multer (`upload.array("files", 10)`) — send as `multipart/form-data` if you want to re-attach files.
-  Bruno does not support multipart easily; use curl or Postman for file attachment testing:
+  This route uses multer (`upload.array("files", 10)`) — send as `multipart/form-data` to add files.
+  New files are appended; existing attachments are kept.
   ```
   curl -X PATCH http://<host>/api/requests/<id>/edit \
     -H "Authorization: Bearer <token>" \
@@ -67,6 +76,7 @@ docs {
   JSON body (no files) works fine for field-only edits.
 
   ## Errors
-  - **403** — caller is not SuperUser
+  - **403** — caller is not the requestor (or SuperUser)
   - **404** — request ID not found
+  - **409** — requestor edit locked: someone has already acted / chatted on the request
 }

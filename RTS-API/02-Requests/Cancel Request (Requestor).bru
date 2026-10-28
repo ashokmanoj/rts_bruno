@@ -1,0 +1,47 @@
+meta {
+  name: Cancel Request (Requestor)
+  type: http
+  seq: 22
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}/cancel
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "reason": "Raised by mistake"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Request cancelled | ID:", res.body.id, "| Status:", res.body.assignedStatus);
+  } else if (res.status === 409) {
+    console.log("🔒 Locked —", res.body.error);
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Cancel Request (Requestor)
+
+  The requestor (owner) cancels their own request. Allowed only while nobody else has
+  approved, forwarded, marked Checking, closed, or replied in chat on the ticket.
+  The same rule applies to requestor edits via `PATCH /requests/:id/edit`.
+
+  Sets `isClosed=true`, `assignedStatus="Cancelled (Closed)"`, `acknowledgement="Cancelled"`,
+  stops any recurring schedule, and logs a system chat message (with the optional reason).
+
+  ## Errors
+  - **403** — caller is not the requestor
+  - **404** — request ID not found
+  - **409** — someone has already acted / chatted on the request
+}

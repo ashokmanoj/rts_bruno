@@ -1,0 +1,29 @@
+meta {
+  name: Admin - List All
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/designations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - List All Designations
+
+  Returns every designation (active and inactive), A–Z, with how many users hold each one.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Response
+  ```json
+  [
+    { "id": 1, "name": "Regional Manager", "isActive": true, "createdAt": "...", "userCount": 4 }
+  ]
+  ```
+}

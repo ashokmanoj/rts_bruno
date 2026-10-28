@@ -1,0 +1,47 @@
+meta {
+  name: Admin - Update Designation
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/admin/designations/{{designationId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Updated Designation Name",
+    "isActive": true
+  }
+}
+
+docs {
+  # Admin - Update Designation
+
+  Renames a designation and/or activates/deactivates it.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  **Renaming also updates every user who has the old name** (same transaction),
+  so no one is left with the old spelling.
+  Deactivating only hides it from the dropdown — users keep their value.
+
+  ## Body
+  | Field    | Required | Description                 |
+  |----------|----------|-----------------------------|
+  | name     | No       | New unique designation name |
+  | isActive | No       | true or false               |
+
+  ## Errors
+  | Status | Reason                            |
+  |--------|-----------------------------------|
+  | 400    | Name is empty                     |
+  | 404    | Designation not found             |
+  | 409    | Designation name already exists   |
+  | 403    | Insufficient role                 |
+}

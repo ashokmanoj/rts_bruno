@@ -1,0 +1,40 @@
+meta {
+  name: Admin - Create Designation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/admin/designations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "New Designation"
+  }
+}
+
+docs {
+  # Admin - Create Designation
+
+  Adds a designation to the dropdown list.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  ## Body
+  | Field | Required | Description                 |
+  |-------|----------|-----------------------------|
+  | name  | Yes      | Unique designation name     |
+
+  ## Errors
+  | Status | Reason                       |
+  |--------|------------------------------|
+  | 400    | Name is required             |
+  | 409    | Designation already exists   |
+  | 403    | Insufficient role            |
+}

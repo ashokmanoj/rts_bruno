@@ -1,0 +1,30 @@
+meta {
+  name: Admin - Delete Designation
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/admin/designations/{{designationId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Admin - Delete Designation
+
+  Removes a designation from the dropdown list.
+  Requires: SuperUser / Admin / Management / HR DeptHOD
+
+  Users who already have this designation **keep it** on their profile
+  (users.designation is plain text and is not changed).
+
+  ## Response
+  ```json
+  { "success": true }
+  ```
+}

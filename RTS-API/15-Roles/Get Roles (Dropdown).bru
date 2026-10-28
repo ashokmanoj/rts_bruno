@@ -1,0 +1,35 @@
+meta {
+  name: Get Roles (Dropdown)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/roles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Roles (Dropdown)
+
+  Roles offered in the Add / Edit User form, in display order, with the label and
+  description set in Org Setup → Roles. Hidden roles and SuperUser are never included.
+  Falls back to the default 8 roles while the `roles` table is empty.
+  Any logged-in user.
+
+  ## Response
+  ```json
+  {
+    "roles": [
+      { "value": "Requestor", "label": "Requestor", "description": "Raises requests" },
+      { "value": "DeptHOD",   "label": "Department Head", "description": "Handles requests assigned to the department" }
+    ]
+  }
+  ```
+  `value` is the real role saved on the user; `label` is display only.
+}

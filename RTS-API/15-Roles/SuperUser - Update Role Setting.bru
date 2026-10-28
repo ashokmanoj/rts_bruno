@@ -1,0 +1,49 @@
+meta {
+  name: SuperUser - Update Role Setting
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/admin/role-settings/DeptHOD
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "label": "Department Head",
+    "description": "Handles requests assigned to the department",
+    "isActive": true,
+    "sortOrder": 4
+  }
+}
+
+docs {
+  # SuperUser - Update Role Setting
+
+  Changes how one role appears in the Add / Edit User form. The role name in the URL
+  must be one of the fixed roles (e.g. `DeptHOD`). All body fields are optional.
+  Requires: SuperUser.
+
+  **Display only** — never changes any user's role or permissions.
+
+  ## Body
+  | Field       | Description                                   |
+  |-------------|-----------------------------------------------|
+  | label       | Name shown in the dropdown (required if sent) |
+  | description | One-line hint under the dropdown              |
+  | isActive    | Show (true) / hide (false) in the dropdown    |
+  | sortOrder   | Position in the dropdown (lower = higher)     |
+
+  ## Errors
+  | Status | Reason                                         |
+  |--------|------------------------------------------------|
+  | 400    | Empty label, or trying to show SuperUser       |
+  | 404    | Unknown role                                   |
+  | 403    | Not SuperUser                                  |
+}

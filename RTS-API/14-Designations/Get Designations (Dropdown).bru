@@ -1,0 +1,27 @@
+meta {
+  name: Get Designations (Dropdown)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/requests/designations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Designations (Dropdown)
+
+  Returns the names of all **active** designations, A–Z, for the user form dropdown.
+  Any logged-in user.
+
+  ## Response
+  ```json
+  { "designations": ["2D Animator", "CEO", "Regional Manager", ...] }
+  ```
+}
