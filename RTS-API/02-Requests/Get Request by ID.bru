@@ -74,10 +74,13 @@ docs {
   | `fileUrls`         | Array of all attachment URLs                                                |
   | `assignedDept`     | Primary assigned department                                                 |
   | `assignedDepts`    | Comma-separated all assigned departments                                    |
-  | `assignedStatus`   | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` / `Rejected (Closed)` |
-  | `isClosed`         | `true` when closed (Received acknowledgement OR rejected by approver)       |
+  | `assignedStatus`   | `Open` / `Checking` / `Pending Acknowledgement` / `DD/MM/YYYY (Closed)` / `Rejected (Closed)` / `Cancelled (Closed)` |
+  | `isClosed`         | `true` when closed (Received acknowledgement, rejected by approver, or cancelled by requestor) |
   | `checkingBy`       | Who set Checking, e.g. `"John (DeptHOD)"`                                  |
-  | `acknowledgement`  | `"Received"` / `"Not Received"` / `"Resolved"` (auto-close) / null         |
+  | `acknowledgement`  | `"Received"` / `"Not Received"` / `"Resolved"` (auto-close) / `"Cancelled"` / null |
+  | `isCancelled`      | `true` when the requestor cancelled the request                             |
+  | `isHodRequest`     | `true` when the requestor's own-dept RM + HOD were auto-approved (HOD requestor) |
+  | `canRequestorModify` | `true` only for the owner while Edit / Cancel are still allowed — use it to enable/disable those buttons |
   | `isDirectAssign`   | `true` when requestor explicitly picked a person in Add Request; only that person + admins see it |
   | `chatMessages`     | Array of chat/approval/system messages                                      |
   | `closeData`        | Resolution note + file (null if not yet closed)                             |

@@ -45,10 +45,31 @@ docs {
 
   Edits core fields of a request.
   - **Requestor (owner)** — allowed only while nobody else has approved, forwarded, marked Checking,
-    closed, or replied in chat on the ticket.
-  - **SuperUser** — allowed anytime.
+    closed, or replied in chat on the ticket. Check `canRequestorModify` on the request first.
+  - **HOD requestor** (`isHodRequest: true`) — own-dept RM + HOD are auto-approved at creation, so own-dept
+    approvals / chats do **not** lock it; only an action or chat from the assigned dept locks it.
+    (If the request is assigned to their own dept, any other person's action locks it.)
+  - **SuperUser** — allowed anytime. SuperUser edits never lock the requestor out.
 
-  Each edit logs a system chat message ("Request edited by …").
+  ## Chat log (edit card)
+  Each edit that actually changes something adds a system chat message with `status: "Edited"`.
+  Text = header line + one line per change (the web app renders it as an "Edited" card):
+  ```
+  Request edited by Nithish V (Requestor).
+  • Title: Old title → New title
+  • Assigned Dept: HR → Software
+  • Due Date: — → 30/06/2026
+  • Attachments added: report.pdf
+  ```
+  Compared fields: Title, Description, Assigned Dept, Assigned Person, Due Date, CC Depts, CC Persons.
+  If nothing changed, the request is returned as-is and no chat message is written.
+  A requestor edit also marks the ticket unread again for everyone else.
+
+  ## Notifications
+  - **Assigned Dept changed** → new dept's RM / HOD / DeptHOD + any picked person get
+    push "📋 Request #<id> assigned to you".
+  - **Same dept, new person picked** → only the newly added person(s) are notified.
+  - Other field edits → no push. The requestor's own RM / HOD and Management are not re-notified.
 
   ## Editable fields (all optional — only send what you want to change)
   | Field                | Type     | Description                                      |

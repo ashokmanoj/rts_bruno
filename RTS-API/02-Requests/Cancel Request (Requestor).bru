@@ -36,6 +36,8 @@ docs {
   The requestor (owner) cancels their own request. Allowed only while nobody else has
   approved, forwarded, marked Checking, closed, or replied in chat on the ticket.
   The same rule applies to requestor edits via `PATCH /requests/:id/edit`.
+  HOD requestors (`isHodRequest: true`): their own-dept auto-approval and own-dept chats don't lock it —
+  only an assigned-dept action / chat does. Use `canRequestorModify` to enable/disable the button.
 
   Sets `isClosed=true`, `assignedStatus="Cancelled (Closed)"`, `acknowledgement="Cancelled"`,
   stops any recurring schedule, and logs a system chat message (with the optional reason).

@@ -72,6 +72,12 @@ docs {
   > If `assignedPersonEmpId` is omitted, the request goes to the full dept.
   > Recurring: a cron job runs daily at 00:05 and creates a fresh child request when `nextRecurringDate` is reached.
 
+  ## HOD requestor — auto-approval
+  If the caller is HOD of their own dept (primary role or an active `UserRole` HOD row), `rmStatus` and
+  `hodStatus` are set to `Approved` immediately and an `approval` chat message
+  ("Auto-approved — requestor is HOD of <dept> (RM + HOD).") is added, authored by the requestor.
+  The response already includes this message, so `isHodRequest` / `canRequestorModify` are correct right away.
+
   ## Auto Urgency Level from dueDate
   | Days until due | Urgency Level |
   |----------------|---------------|
@@ -94,4 +100,6 @@ docs {
   | isDirectAssign      | `true` when requestor explicitly picked a person; `false` when assigned to dept only. Controls dept-level visibility. |
   | ccDepts             | CC'd departments                                         |
   | ccEmpIds            | CC'd employee IDs                                        |
+  | isHodRequest        | `true` when the requestor's own-dept RM + HOD steps were auto-approved |
+  | canRequestorModify  | `true` → the requestor can still Edit / Cancel (see Edit Request)      |
 }
