@@ -59,9 +59,11 @@ docs {
   • Title: Old title → New title
   • Assigned Dept: HR → Software
   • Due Date: — → 30/06/2026
+  • Attachments removed: old-report.pdf
   • Attachments added: report.pdf
   ```
-  Compared fields: Title, Description, Assigned Dept, Assigned Person, Due Date, CC Depts, CC Persons.
+  Compared fields: Title, Description, Assigned Dept, Assigned Person, Due Date, CC Depts, CC Persons,
+  plus attachments removed / added.
   If nothing changed, the request is returned as-is and no chat message is written.
   A requestor edit also marks the ticket unread again for everyone else.
 
@@ -84,17 +86,25 @@ docs {
   | ccDepts              | string   | Comma-separated CC departments (or "" to clear)  |
   | ccEmpIds             | string   | Comma-separated CC employee IDs (or "" to clear) |
   | ccPersonNames        | string   | Comma-separated CC names (or "" to clear)        |
+  | removeFileUrls       | JSON array / string | Existing attachment URLs (from `fileUrls`) to delete |
 
   ## File attachments
   This route uses multer (`upload.array("files", 10)`) — send as `multipart/form-data` to add files.
-  New files are appended; existing attachments are kept.
+  - **Add** — send new files in `files`; they are appended to the attachments that remain.
+  - **Remove** — send `removeFileUrls` with a JSON array of URLs exactly as returned in `fileUrls`.
+    URLs that don't match an existing attachment are ignored. Removing every file clears
+    `fileUrl` / `fileUrls` to null.
+  - **Replace** — do both in one call: remove the old URL and upload the new file.
   ```
   curl -X PATCH http://<host>/api/requests/<id>/edit \
     -H "Authorization: Bearer <token>" \
     -F "purpose=Updated title" \
-    -F "files=@/path/to/file.pdf"
+    -F 'removeFileUrls=["/uploads/old-report.pdf"]' \
+    -F "files=@/path/to/new-report.pdf"
   ```
-  JSON body (no files) works fine for field-only edits.
+  JSON body (no files) works for field-only edits and removals, e.g.
+  `{ "removeFileUrls": ["/uploads/old-report.pdf"] }`.
+  Removed files are dropped from the request only; the stored file itself is not deleted.
 
   ## Errors
   - **403** — caller is not the requestor (or SuperUser)
