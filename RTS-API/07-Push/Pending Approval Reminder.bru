@@ -1,0 +1,105 @@
+meta {
+  name: Pending Approval Reminder
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/push/pending-approval-reminder
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "send": false,
+    "ignoreSchedule": false
+  }
+}
+
+docs {
+  # Pending Approval Reminder (Manual)
+
+  Manually runs the daily pending-approval reminder job. By default this is a
+  **preview** — it returns who would be notified and the exact message, and sends nothing.
+
+  ## Access
+  SuperUser only. Returns 403 for all other roles.
+
+  ## Body
+  | Field            | Type    | Default | Description |
+  |------------------|---------|---------|-------------|
+  | `send`           | boolean | `false` | `false` = preview only (nothing sent). `true` = actually send the push notifications. |
+  | `ignoreSchedule` | boolean | `false` | `false` = only people due a reminder today (same as the cron). `true` = everyone holding overdue tickets. |
+
+  ⚠️ `"send": true` sends real notifications to real users.
+
+  ## Who is reminded
+  Only the people currently holding a ticket nobody has acted on:
+
+  - **Stage 1 — requestor's department:** HOD step still pending (`hodStatus = "--"`)
+    → the requestor's HOD only (not the RM, not the assigned department).
+  - **Stage 2 — assigned department:** requestor's HOD has approved / forwarded and
+    RM, HOD and DeptHOD of the assigned department are all still pending
+    → RM + HOD + DeptHOD of the assigned department.
+    (If the ticket was raised to the requestor's own department → DeptHOD only.)
+
+  Only tickets with status `Open` are considered — Checking, Pending Acknowledgement,
+  Broadcast and closed tickets are skipped. The requestor is never reminded about their own ticket.
+
+  ## Timing
+  - Calendar days (Sundays and holidays count).
+  - First reminder after **3 full days** in the current stage.
+    Stage 2 counts from the HOD approval / forward date, not the ticket creation date.
+  - Then repeated on **alternate days** (day 3, 5, 7 …) until someone acts.
+  - Each person gets **one** notification with their total ticket count.
+
+  ## Automatic schedule
+  The same job runs automatically via cron every day at **10:00 AM IST**.
+
+  ## Notification content
+  - Title: "⏰ Reminder: 15 tickets awaiting your approval"
+    (1 ticket → "⏰ Reminder: 1 ticket awaiting your approval")
+  - Body: none — the notification shows the title only, with the RTS logo
+  - type / action: `pending_approval_reminder`
+  - channel_id: `rts_notifications`
+  - requireInteraction: true
+
+  ## What happens on tap
+  | Pending tickets | `url`                  | Opens |
+  |-----------------|------------------------|-------|
+  | 1               | `/?openRequest=<id>`   | That ticket's details directly |
+  | 2 or more       | `/?ids=11,12,13`       | Dashboard showing **only** those tickets (oldest first in the link, max 100), with a "Showing only the N tickets from your pending approval reminder — Show all tickets" bar |
+
+  Mobile (FCM): single ticket → `request_id` + `deepLink` to `/?openRequest=<id>`;
+  several → `deepLink` = `FRONTEND_URL + /?ids=...` (from `data.deepLinkPath`).
+  The `ids` view uses `GET /requests?ids=...`, so role visibility still applies — a multi-role
+  user only sees the tickets belonging to the role they are currently logged in as.
+
+  ## Response
+  ```json
+  {
+    "success": true,
+    "sent": false,
+    "ignoreSchedule": false,
+    "count": 1,
+    "recipients": [
+      {
+        "empId": "GN-1042",
+        "name": "Sudhakar G Hegde",
+        "own": 12,
+        "assigned": 3,
+        "oldest": 131,
+        "title": "⏰ Reminder: 15 tickets awaiting your approval"
+      }
+    ]
+  }
+  ```
+  - `own` — tickets from the person's own department awaiting their HOD approval
+  - `assigned` — tickets assigned to their department awaiting approval
+  - `oldest` — days the longest-pending ticket has waited
+}

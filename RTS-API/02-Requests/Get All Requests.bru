@@ -35,6 +35,7 @@ query {
   ~type: received
   ~startDate: 2026-04-01
   ~endDate: 2026-04-30
+  ~ids: 11,12,13
 }
 
 auth:bearer {
@@ -100,6 +101,7 @@ docs {
   | `search`        | keyword                                             | Searches purpose, description, empId, name     |
   | `startDate`     | YYYY-MM-DD                                          | Created date range start                       |
   | `endDate`       | YYYY-MM-DD                                          | Created date range end                         |
+  | `ids`           | ticket numbers, comma-separated (e.g. `11,12,13`)   | Only these tickets. Used by the pending-approval reminder link. Role visibility still applies — tickets the caller can't see are left out. |
 
   ### unread filter
   Returns only requests where the calling user has **no read receipt** — i.e. tickets they have never opened.
