@@ -16,9 +16,13 @@ auth:bearer {
 
 body:json {
   {
-    "role": "Requestor",
+    "role": "HOD",
     "dept": "Software"
   }
+}
+
+vars:pre-request {
+  tempToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ZDBkMjA3Ni1jMjEzLTRjOTctODU4My0xZDQ5NmNiYTM2Y2EiLCJlbXBJZCI6IkFDLTE1MTIiLCJuYW1lIjoiTWFub2ogSCBBIiwibG9jYXRpb24iOiJCYW5nYWxvcmUiLCJ0eXBlIjoidGVtcCIsImlhdCI6MTc5NDk4MDA0OSwiZXhwIjoxNzk0OTgwNjQ5fQ.u7h6LWi7Xpy7WpmB3R8MaNmjPonC3uzbeR7zJGXU4w0
 }
 
 script:post-response {

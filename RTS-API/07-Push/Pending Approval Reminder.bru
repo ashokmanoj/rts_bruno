@@ -70,15 +70,18 @@ docs {
   - requireInteraction: true
 
   ## What happens on tap
-  | Pending tickets | `url`                  | Opens |
-  |-----------------|------------------------|-------|
-  | 1               | `/?openRequest=<id>`   | That ticket's details directly |
-  | 2 or more       | `/?ids=11,12,13`       | Dashboard showing **only** those tickets (oldest first in the link, max 100), with a "Showing only the N tickets from your pending approval reminder — Show all tickets" bar |
+  `url` = `/?pendingApprovals=1` → the web dashboard opens the **Pending Approvals** popup:
+  one small card per role + dept with the number of pending tickets
+  (data from `GET /requests/pending-approvals`, see 02-Requests → Pending Approvals).
+  Tapping a card switches to that role (if needed) and shows only those tickets
+  (a single ticket opens its details). If the user was logged out, they land on the
+  popup right after login.
 
-  Mobile (FCM): single ticket → `request_id` + `deepLink` to `/?openRequest=<id>`;
-  several → `deepLink` = `FRONTEND_URL + /?ids=...` (from `data.deepLinkPath`).
-  The `ids` view uses `GET /requests?ids=...`, so role visibility still applies — a multi-role
-  user only sees the tickets belonging to the role they are currently logged in as.
+  Management (GN-01 / GN-02) → `url` = `/management` (they approve in the Management portal).
+
+  Mobile (FCM data): `type` / `action` = `pending_approval_reminder`, `pending_count`,
+  `deepLink` = `FRONTEND_URL + /?pendingApprovals=1`.
+  A native app should open its own pending list screen by calling `GET /requests/pending-approvals`.
 
   ## Response
   ```json
