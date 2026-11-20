@@ -83,6 +83,10 @@ docs {
   `deepLink` = `FRONTEND_URL + /?pendingApprovals=1`.
   A native app should open its own pending list screen by calling `GET /requests/pending-approvals`.
 
+  > ⏸ **Mobile is currently PAUSED** — this reminder goes to web push only.
+  > To resume mobile: set `PENDING_REMINDER_MOBILE=true` in the backend `.env` and restart.
+  > (Only this reminder is affected — new-ticket and other notifications still go to mobile.)
+
   ## Response
   ```json
   {

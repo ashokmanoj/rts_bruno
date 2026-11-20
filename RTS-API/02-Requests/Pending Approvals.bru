@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/requests/pending-approvals
+  url: {{baseUrl}}/requests/pending-approvals?all=true
   body: none
   auth: bearer
 }
 
-query {
-  ~all: true
+params:query {
+  all: true
 }
 
 auth:bearer {
@@ -27,33 +27,28 @@ script:post-response {
 
 docs {
   # Pending Approvals (web + mobile)
-
+  
   Tickets waiting for the **logged-in user's** approval, grouped by the **role + department**
   they must act as. Uses exactly the same rules as the pending-approval reminder push,
   so the total here matches the number in the notification
   ("⏰ Reminder: 15 tickets awaiting your approval").
-
+  
   Works with **any** of the user's roles in the token — it looks at all roles the user holds,
   not only the current one.
-
+  
   ## Query
   | Param | Default | Description |
   |-------|---------|-------------|
   | `all` | `false` | `false` = tickets pending **3+ days** (same as the notification). `true` = every pending ticket. |
-
+  
   ## Who holds a ticket
-  - **Stage 1 (`stage: "own"`)** — requestor's HOD has not approved → the requestor's HOD
-    (the `hodEmpId` set on the requestor). Role to act as: `HOD` of the requestor's dept.
-    - Requestor has no HOD set → not listed for anyone (fix the user in User Management).
-    - Ticket raised to `Management` → not listed (HODs can't open those).
-    - HOD is GN-01 / GN-02 → group `role: "Management"`, `openPath: "/management"`
-      (they approve in the Management portal).
+  - **Stage 1 (`stage: "own"`)** — requestor's HOD has not approved → the requestor's HOD.
+    Role to act as: `HOD` of the requestor's dept.
   - **Stage 2 (`stage: "assigned"`)** — HOD approved / forwarded, nobody in the assigned dept has acted
     → `RM`, `HOD`, `DeptHOD` of the assigned dept (own-dept tickets → `DeptHOD` only).
-    Directly assigned to a person (`isDirectAssign`) → `DeptHOD` is not listed (they can't see it).
   - Only `Open` tickets. The requestor is never listed for their own ticket.
   - Calendar days. Stage 2 counts from the HOD approval / forward date.
-
+  
   ## Response
   ```json
   {
@@ -102,7 +97,7 @@ docs {
     ]
   }
   ```
-
+  
   | Field | Meaning |
   |-------|---------|
   | `total` | Distinct tickets (a ticket held in two roles counts once) — matches the notification |
@@ -111,20 +106,19 @@ docs {
   | `canSwitch` | User holds this role in `user_roles` → can switch to it |
   | `accessible` | `isCurrentRole || canSwitch`. `false` → role not assigned to the user; show it disabled ("contact HR") |
   | `ticketIds` | Oldest first — use with `GET /requests?ids=...` |
-  | `openPath` | Only on `role: "Management"` groups — open this portal instead of the dashboard list |
   | `tickets[].days` | Full days waiting in the current stage |
-
+  
   Groups: current role first, then by count. Sum of group counts can be higher than `total`
   when the same ticket is waiting on the user in two roles.
-
+  
   ## Client flow (web + mobile)
-  1. Call this API → show one small card per group (count, role, dept, oldest days).
+  1. Call this API → show the groups (label, count, oldest days).
   2. User taps a group:
      - `isCurrentRole: false` → `POST /auth/switch-role` `{ "role": g.role, "dept": g.dept }`
        → save the new token.
   3. Load the tickets with the (new) token: `GET /requests?ids=<g.ticketIds joined by ,>`
      (one ticket → you can open `GET /requests/<id>` directly).
-
-  Web does this in the **Pending Approvals** popup (cards), opened by the dashboard button
-  and when the reminder notification is tapped (`/?pendingApprovals=1`).
+  
+  Web does this in the **Pending Approvals** button on the dashboard, and when the
+  reminder notification is tapped (`/?pendingApprovals=1`).
 }
