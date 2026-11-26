@@ -1,0 +1,96 @@
+meta {
+  name: Recurring Ticket Reminder
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/push/recurring-reminder
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "send": false
+  }
+}
+
+docs {
+  # Recurring Ticket Reminder (Manual)
+
+  Manually runs the daily recurring-ticket reminder job. By default this is a
+  **preview**: it returns who would be notified and the exact message, and sends nothing.
+
+  ## Access
+  SuperUser only. Returns 403 for all other roles.
+
+  ## Body
+  | Field  | Type    | Default | Description |
+  |--------|---------|---------|-------------|
+  | `send` | boolean | `false` | `false` = preview only (nothing sent). `true` = actually send the push notifications. |
+
+  ⚠️ `"send": true` sends real notifications to real users.
+
+  ## Who is reminded
+  The **requestor** (the person who raised the ticket) of every recurring ticket that the
+  next auto-reopen run will reopen:
+
+  - `isRecurring = true` and the ticket is closed (acknowledged as Resolved)
+  - `nextRecurringDate` falls between the last reopen run and the next one (00:05 server time)
+  - the requestor's account is active
+
+  Approvers are not included. They still get the usual "📋 New Request" push when the
+  ticket reopens. Tickets whose recurring schedule was stopped (`Stop Recurring`) are skipped.
+
+  ## Timing
+  - The reopen job runs daily at **00:05** (server time) and reopens due tickets.
+  - The reminder goes out the day before, so each requestor gets **one** reminder per cycle.
+  - The reminder covers exactly the tickets the next reopen run will pick up, so running this
+    request several times on the same day returns the same list.
+
+  ## Automatic schedule
+  The same job runs automatically via cron every day at **10:00 AM IST**.
+
+  ## Notification content
+  - Title: "🔁 Recurring ticket #123 reopens tomorrow"
+  - Body: "\"Monthly server backup check\" will reopen automatically (every 4 months) and the approval cycle will restart."
+    (purpose cut to 70 characters; interval shown as weekly / every 2 weeks / monthly /
+    every 4 months / every 6 months / yearly)
+  - type / action: `recurring_reminder`
+  - channel_id: `rts_notifications`
+  - tag: `recurring-reminder-<ticketId>`
+  - Sent to web push **and** the mobile app (FCM).
+
+  ## What happens on tap
+  `url` = `/?openRequest=<ticketId>` → the web dashboard opens that ticket's details.
+
+  Mobile (FCM data): `type` / `action` = `recurring_reminder`, `request_id`,
+  `deepLink` = `FRONTEND_URL + /?openRequest=<ticketId>`.
+
+  ## Response
+  ```json
+  {
+    "success": true,
+    "sent": false,
+    "count": 1,
+    "recipients": [
+      {
+        "id": 123,
+        "empId": "GN-1042",
+        "name": "Sudhakar G Hegde",
+        "title": "🔁 Recurring ticket #123 reopens tomorrow"
+      }
+    ]
+  }
+  ```
+  - `id` — ticket number that reopens tomorrow
+  - `empId` / `name` — the requestor who is (or would be) notified
+
+  ## Command-line dry run
+  From `rts_backend`: `node -r dotenv/config src/utils/recurringCron.js`
+}

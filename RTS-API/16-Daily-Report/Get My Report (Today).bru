@@ -1,0 +1,73 @@
+meta {
+  name: Get My Report (Today)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:pre-request {
+  // Today's date in IST (UTC + 5:30) — the only date an employee can open
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body.report;
+    console.log(`✅ ${res.body.date} | visible to HOD: ${res.body.hodName || "-"}`);
+    console.log(r ? `   ${r.status} · ${r.mode} · ${r.entries.length} task(s) · effectiveness ${r.rating ?? "-"}/10` : "   No report yet for today");
+    if (r) bru.setVar("dailyReportId", r.id);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Get My Report (Today)
+
+  The logged-in user's own report for **today** (IST). `{{today}}` is set
+  automatically by the pre-request script.
+
+  **No history:** employees can only open today's report. Any other date returns
+  `403` — after 11:59 PM the day closes and that report is no longer visible to
+  the employee (their HOD still sees it in Team Reports).
+
+  ## Response
+  ```json
+  {
+    "date": "2026-11-23",
+    "today": "2026-11-23",
+    "isFuture": false,
+    "isPastLimit": false,
+    "nonWorking": null,
+    "hodName": "Hema HOD",
+    "report": {
+      "id": 42, "empId": "GC-1001", "reportDate": "2026-11-23",
+      "mode": "half", "status": "Draft", "dept": "Software",
+      "blockers": "Waiting for VPN access", "rating": 8,
+      "isLate": false, "submittedAt": null, "dayClosed": false,
+      "entries": [
+        { "id": 101, "slot": "FIRST_HALF",  "title": "Code review for the login module", "description": null },
+        { "id": 102, "slot": "SECOND_HALF", "title": "Fixed the login bug",              "description": "PR #12" }
+      ]
+    }
+  }
+  ```
+  - `report` is `null` when nothing has been saved for today yet.
+  - `hodName` — the employee's HOD, the person who sees this report (with SuperUser / Admin).
+  - `nonWorking` is e.g. `"Sunday"`, `"2nd Saturday"` or a holiday name.
+
+  ## Errors
+  | Status | When |
+  |---|---|
+  | 403 | Date is not today — "Past reports are not available. You can only see and edit today's report." |
+  | 400 | Bad date format |
+}

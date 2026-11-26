@@ -1,0 +1,78 @@
+meta {
+  name: Submit Report
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "mode": "half",
+    "entries": [
+      { "slot": "FIRST_HALF",  "title": "Reviewed pull requests" },
+      { "slot": "SECOND_HALF", "title": "Fixed the login timeout bug", "description": "PR #12" }
+    ],
+    "blockers": "Waiting for VPN access from IT",
+    "rating": 8,
+    "action": "submit"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body.report;
+    bru.setVar("dailyReportId", r.id);
+    console.log(`✅ Submitted #${r.id} · ${r.entries.length} task(s) · effectiveness ${r.rating ?? "-"}/10`);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+tests {
+  test("report is submitted with both halves", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.report.status).to.equal("Submitted");
+    const slots = res.body.report.entries.map(e => e.slot);
+    expect(slots).to.include("FIRST_HALF");
+    expect(slots).to.include("SECOND_HALF");
+    if (res.body.report.rating != null) expect(res.body.report.rating).to.be.within(0, 10);
+  });
+}
+
+docs {
+  # Submit Report
+
+  Saves and submits **today's** report (`"action": "submit"`). The employee's HOD gets a
+  push notification with the task count, effectiveness rating and blockers (view only — there is no
+  approve / return step). Sets `{{dailyReportId}}`. `mode` can be left out (always `"half"`).
+
+  ## Mandatory to submit
+  - At least one `FIRST_HALF` task **and** at least one `SECOND_HALF` task.
+  - Before **11:59 PM IST** the same day.
+
+  Optional: `blockers`, and `rating` — **Today's Effectiveness**, whole number **0 to 10**
+  (0 = very low, 10 = excellent; `0` is a valid rating, leave it out or send `null` to skip).
+
+  ## Errors (400)
+  - `Reports are written as First Half and Second Half only — send mode "half" (or leave it out).`
+  - `Add at least one task before submitting.`
+  - `Effectiveness rating must be a whole number from 0 to 10.` (only when a rating is sent)
+  - `The First Half is mandatory — add at least one First Half task before submitting.`
+  - `The Second Half is mandatory — add at least one Second Half task before submitting.`
+  - `This day is closed. A report can only be submitted on the same day, before 11:59 PM.`
+
+  To change a submitted report: **Withdraw Report**, edit, and submit again — before 11:59 PM.
+}

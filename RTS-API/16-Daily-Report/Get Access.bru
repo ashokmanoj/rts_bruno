@@ -1,0 +1,54 @@
+meta {
+  name: Get Access
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/access
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log(`✅ Today (IST): ${res.body.today} | team tab: ${res.body.canViewTeam} | scope: ${res.body.scope} | employees: ${res.body.teamSize}`);
+  } else {
+    console.log("❌", res.body.error);
+  }
+}
+
+docs {
+  # Get Access
+
+  What the logged-in user can see on the Daily Report page. Any logged-in user
+  (Requestor, Intern, RM, HOD, …).
+
+  ## Response
+  ```json
+  {
+    "today": "2026-11-23",
+    "backdateLimitDays": 0,
+    "canViewTeam": true,
+    "scope": "team",
+    "teamSize": 6,
+    "depts": []
+  }
+  ```
+
+  - `today` — current date in IST (`YYYY-MM-DD`).
+  - `backdateLimitDays` — `0` = same-day only (default). Set by env `DAILY_REPORT_BACKDATE_DAYS`.
+  - `canViewTeam` — show the **Team Reports** tab: the user is the **HOD** of at least one
+    employee, or is SuperUser / Admin.
+  - `scope` — `"team"` (employees whose HOD is this user) or `"all"` (SuperUser, Admin).
+  - `teamSize` — number of employees the user can see.
+  - `depts` — department filter list (only filled for `scope: "all"`).
+
+  ## Who sees an employee's daily reports
+  Only the employee's own **HOD**, **SuperUser** and **Admin** — view only.
+  RM, Management and HR DeptHOD do not see them. There is **no approve / return** step.
+}

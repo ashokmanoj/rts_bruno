@@ -1,0 +1,50 @@
+meta {
+  name: Submit - Effectiveness Out of Range (400)
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "mode": "half",
+    "entries": [
+      { "slot": "FIRST_HALF",  "title": "Code review for the login module" },
+      { "slot": "SECOND_HALF", "title": "Fixed the login timeout bug" }
+    ],
+    "rating": 11,
+    "action": "submit"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+tests {
+  test("submit is rejected — effectiveness must be 0 to 10", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.contain("0 to 10");
+  });
+}
+
+docs {
+  # Submit - Effectiveness Out of Range (400)
+
+  Negative check: Today's Effectiveness (optional) must be a whole number from **0 to 10** when it is sent.
+  `11`, `-1` or `7.5` are rejected.
+
+  Expected: `400` — `Effectiveness rating must be a whole number from 0 to 10.`
+
+  `0` is a valid rating, and leaving the rating out is fine. Nothing is saved when the request is rejected.
+  Only works if today's report is not already Submitted (otherwise `409` — withdraw it first).
+}

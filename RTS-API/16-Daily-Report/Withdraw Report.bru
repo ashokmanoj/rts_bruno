@@ -1,0 +1,45 @@
+meta {
+  name: Withdraw Report
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/daily-reports/me/{{today}}/withdraw
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) console.log(`✅ Withdrawn — report is now ${res.body.report.status}`);
+  else console.log("❌", res.status, res.body.error);
+}
+
+docs {
+  # Withdraw Report
+
+  Moves today's `Submitted` report back to `Draft` so the employee can edit it.
+  It must be submitted again before 11:59 PM, otherwise the day counts as missing.
+
+  ## Errors
+  | Status | When |
+  |---|---|
+  | 404 | No report for today |
+  | 409 | Not `Submitted` (e.g. still a Draft) |
+  | 409 | The day is closed |
+
+  ## Response
+  `{ "report": { ..., "status": "Draft" } }`
+}

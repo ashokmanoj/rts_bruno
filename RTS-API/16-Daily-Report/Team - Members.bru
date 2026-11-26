@@ -1,0 +1,51 @@
+meta {
+  name: Team - Members
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/team/members
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~dept: Software
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const m = res.body.members || [];
+    console.log(`✅ ${m.length} employee(s)`);
+    m.forEach(x => console.log(`   ${x.empId} ${x.name} · ${x.role} · ${x.dept}`));
+    if (m[0]) bru.setVar("summaryEmpId", m[0].empId);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Team - Members
+
+  Employees whose daily reports the user can see — used for the employee picker on the
+  **Employee summary** screen. Sets `{{summaryEmpId}}` to the first employee.
+
+  - **HOD** → active employees whose HOD they are (Requestors, Interns, …).
+  - **SuperUser / Admin** → all active employees (optional `dept` filter).
+  - Anyone else → empty list.
+
+  ## Response
+  ```json
+  {
+    "members": [
+      { "empId": "AI-2340", "name": "Bisal Shah",    "dept": "Software", "designation": "Game Developer-Intern", "role": "Intern" },
+      { "empId": "GC-1001", "name": "Esha Employee", "dept": "Software", "designation": "Developer",             "role": "Requestor" }
+    ]
+  }
+  ```
+}

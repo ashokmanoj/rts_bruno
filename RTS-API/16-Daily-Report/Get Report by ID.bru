@@ -1,0 +1,52 @@
+meta {
+  name: Get Report by ID
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/{{dailyReportId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body.report;
+    console.log(`✅ #${r.id} ${r.owner?.name} · ${r.reportDate} · ${r.status} · ${r.entries.length} task(s) · effectiveness ${r.rating ?? "-"}/10`);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Get Report by ID
+
+  One report with all tasks — view only. `{{dailyReportId}}` is set by the Save / Submit
+  requests, Get My Report and Team - Employee Summary.
+
+  ## Who can open it
+  - The employee's **HOD**, **SuperUser**, **Admin** — any date.
+  - The owner — **today's report only**. Their own past report returns `403`
+    ("Past reports are not available. You can only see and edit today's report.").
+  - Anyone else (RM, Management, another HOD, …) — `403 Access denied.`
+
+  ## Response
+  ```json
+  {
+    "report": {
+      "id": 42, "empId": "GC-1001", "reportDate": "2026-11-23", "mode": "half", "status": "Submitted",
+      "blockers": "Waiting for VPN access", "rating": 8, "isLate": false, "dayClosed": false,
+      "submittedAt": "2026-11-23T12:40:00.000Z",
+      "entries": [ { "id": 101, "slot": "FIRST_HALF", "title": "Code review", "description": null }, { "id": 102, "slot": "SECOND_HALF", "title": "Fixed the login bug", "description": "PR #12" } ],
+      "owner": { "empId": "GC-1001", "name": "Esha Employee", "dept": "Software", "designation": "Developer" }
+    }
+  }
+  ```
+  Older reports may have `status` `"Approved"` or `"Returned"` from the retired review
+  step — treat both as submitted.
+}

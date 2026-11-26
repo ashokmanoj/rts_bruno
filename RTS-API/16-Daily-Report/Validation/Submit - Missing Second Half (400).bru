@@ -1,0 +1,49 @@
+meta {
+  name: Submit - Missing Second Half (400)
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "mode": "half",
+    "entries": [
+      { "slot": "FIRST_HALF", "title": "Reviewed pull requests" }
+    ],
+    "rating": 8,
+    "action": "submit"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+tests {
+  test("submit is rejected — Second Half is mandatory", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.contain("Second Half is mandatory");
+  });
+}
+
+docs {
+  # Submit - Missing Second Half (400)
+
+  Negative check: a report with no `SECOND_HALF` task cannot be submitted.
+  (Saving it as a draft with `"action": "save"` is allowed.)
+
+  Expected: `400` —
+  `The Second Half is mandatory — add at least one Second Half task before submitting.`
+
+  Only works if today's report is not already Submitted (otherwise `409` — withdraw it first).
+}

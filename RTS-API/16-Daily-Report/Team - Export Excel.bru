@@ -1,0 +1,46 @@
+meta {
+  name: Team - Export Excel
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/export?from=2026-11-01&to=2026-11-23
+  body: none
+  auth: bearer
+}
+
+params:query {
+  from: 2026-11-01
+  to: 2026-11-23
+  ~dept: Software
+  ~empId: GC-1001
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Team - Export Excel
+
+  Downloads an `.xlsx` of the reports the user can see (drafts excluded) — an HOD gets
+  their own employees, SuperUser / Admin get everyone, anyone else gets an empty file.
+  Max **93 days** per export. Pass `empId` to export one employee (the **Export** button on
+  the Employee summary screen does this).
+
+  ## Query
+  | Param | Notes |
+  |---|---|
+  | `from`, `to` | `YYYY-MM-DD`, default last 30 days |
+  | `dept` | Optional department filter |
+  | `empId` | Optional single employee |
+
+  `scope=me` (export my own reports) is **refused with 403** — employees have no history.
+
+  ## Sheets
+  - **Reports** — Date, Emp ID, Name, Dept, Type, Status, Tasks, Effectiveness (0-10), Late, Blockers, Submitted At
+  - **Task Entries** — Date, Emp ID, Name, Dept, Slot, Task, Details
+
+  In Bruno, use **Save Response** to store the file.
+}

@@ -1,0 +1,64 @@
+meta {
+  name: Team - Employee Calendar
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/calendar?month=11&year=2026&empId={{summaryEmpId}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  month: 11
+  year: 2026
+  empId: {{summaryEmpId}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const s = res.body.stats;
+    console.log(`✅ ${res.body.month}/${res.body.year}: ${s.submitted}/${s.workingDays} days · ${s.compliance}% · avg rating ${s.avgRating ?? "-"} · streak ${s.streak} · missing ${s.missing}`);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Team - Employee Calendar
+
+  One employee's month: per-day status and stats (used by the calendar button in the
+  report drawer). For the employee's **HOD**, **SuperUser** or **Admin** only —
+  `empId` is required.
+
+  Employees cannot see their own calendar (no history): calling it without `empId`,
+  or with your own `empId`, returns `403`.
+
+  ## Query
+  | Param | Notes |
+  |---|---|
+  | `month` | 1–12 |
+  | `year` | e.g. 2026 |
+  | `empId` | **Required** — the employee to look at |
+
+  ## Response
+  ```json
+  {
+    "month": 11, "year": 2026, "today": "2026-11-23",
+    "days": [
+      { "date": "2026-11-20", "dow": 5, "nonWorking": null, "isFuture": false,
+        "status": "Submitted", "mode": "half", "rating": 7, "isLate": false, "reportId": 40 }
+    ],
+    "stats": {
+      "workingDays": 16, "submitted": 15, "drafts": 0, "missing": 1, "late": 0,
+      "ratedDays": 15, "compliance": 94, "avgRating": 7.4, "streak": 6
+    }
+  }
+  ```
+  For a date range across months, use **Team - Employee Summary** instead.
+}

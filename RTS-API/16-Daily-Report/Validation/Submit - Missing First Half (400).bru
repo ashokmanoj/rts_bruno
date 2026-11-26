@@ -1,0 +1,49 @@
+meta {
+  name: Submit - Missing First Half (400)
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "mode": "half",
+    "entries": [
+      { "slot": "SECOND_HALF", "title": "Fixed the login timeout bug" }
+    ],
+    "rating": 8,
+    "action": "submit"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+tests {
+  test("submit is rejected — First Half is mandatory", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.contain("First Half is mandatory");
+  });
+}
+
+docs {
+  # Submit - Missing First Half (400)
+
+  Negative check: a report with no `FIRST_HALF` task cannot be submitted.
+
+  Expected: `400` —
+  `The First Half is mandatory — add at least one First Half task before submitting.`
+
+  Nothing is saved when the request is rejected.
+  Only works if today's report is not already Submitted (otherwise `409` — withdraw it first).
+}

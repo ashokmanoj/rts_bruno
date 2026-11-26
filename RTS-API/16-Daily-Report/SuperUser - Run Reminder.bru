@@ -1,0 +1,49 @@
+meta {
+  name: SuperUser - Run Reminder
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/daily-reports/reminder/run
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "dryRun": true
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log(`✅ ${res.body.count} user(s) would get / got the reminder`);
+    (res.body.rows || []).slice(0, 20).forEach(r => console.log("  ", JSON.stringify(r)));
+  } else if (res.status === 403) {
+    console.log("❌ SuperUser only");
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # SuperUser - Run Reminder
+
+  Runs the evening "submit your daily report" reminder job by hand.
+
+  - `"dryRun": true` (default) — only lists who **would** be reminded, sends nothing.
+  - `"dryRun": false` — actually sends the push notifications.
+
+  Reminded: active users who have used daily reports recently and have not yet
+  submitted today's report.
+
+  Requires: SuperUser (403 otherwise).
+
+  ## Response
+  `{ "count": 12, "rows": [ ... ] }`
+}

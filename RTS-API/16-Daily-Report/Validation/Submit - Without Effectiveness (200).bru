@@ -1,0 +1,60 @@
+meta {
+  name: Submit - Without Effectiveness (200)
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "entries": [
+      { "slot": "FIRST_HALF",  "title": "Code review for the login module" },
+      { "slot": "SECOND_HALF", "title": "Fixed the login timeout bug" }
+    ],
+    "blockers": "",
+    "action": "submit"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("dailyReportId", res.body.report.id);
+    console.log(`✅ Submitted #${res.body.report.id} without a rating (rating: ${res.body.report.rating})`);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+tests {
+  test("submit works without Today's Effectiveness", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.report.status).to.equal("Submitted");
+    expect(res.body.report.rating).to.equal(null);
+  });
+}
+
+docs {
+  # Submit - Without Effectiveness (200)
+
+  Positive check: **Today's Effectiveness is optional**. Both halves are filled and no
+  `rating` is sent (and `mode` is left out too) — the report is submitted, with `rating: null`.
+
+  The HOD's Team summary counts this day as submitted but leaves it out of the average,
+  best and lowest effectiveness.
+
+  Run this **last** in the folder — it really submits today's report. To run the other
+  validation checks again afterwards, use **Withdraw Report** first (otherwise `409`).
+}

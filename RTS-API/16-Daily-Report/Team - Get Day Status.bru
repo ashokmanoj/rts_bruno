@@ -1,0 +1,71 @@
+meta {
+  name: Team - Get Day Status
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/team?date={{today}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  date: {{today}}
+  ~dept: Software
+  ~search: GC-1001
+  ~status: Submitted
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const s = res.body.summary;
+    console.log(`✅ ${res.body.date}: ${s.submitted}/${s.total} submitted · ${s.drafts} in draft · ${s.missing} missing · ${s.blockers} with blockers`);
+    res.body.rows.forEach(r => console.log(`   ${r.empId} ${r.name} — ${r.status}${r.rating != null ? ` · effectiveness ${r.rating}/10` : ""}${r.hasBlockers ? " · blockers" : ""}`));
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Team - Get Day Status
+
+  Report status of every employee the user can see, for one day (any past date) — view only.
+  - **HOD** → employees whose HOD they are (Requestors, Interns, …).
+  - **SuperUser / Admin** → everyone.
+  - Anyone else → empty list.
+
+  ## Query
+  | Param | Notes |
+  |---|---|
+  | `date` | `YYYY-MM-DD`, default today |
+  | `dept` | Filter by department |
+  | `search` | Name or Emp ID |
+  | `status` | `Submitted`, `Draft`, `Missing`, `Not Started`, `Off` |
+
+  ## Response
+  ```json
+  {
+    "date": "2026-11-23", "today": "2026-11-23", "nonWorking": null,
+    "summary": { "total": 6, "submitted": 4, "drafts": 1, "missing": 1, "blockers": 2 },
+    "rows": [
+      {
+        "empId": "AI-2340", "name": "Bisal Shah", "dept": "Software", "designation": "Game Developer-Intern",
+        "reportId": 42, "status": "Submitted", "mode": "half", "entryCount": 3,
+        "isLate": false, "submittedAt": "2026-11-23T12:40:00.000Z", "lastUpdated": "2026-11-23T12:40:00.000Z",
+        "rating": 8, "hasBlockers": true
+      }
+    ]
+  }
+  ```
+  - A draft left on a closed day counts as `Missing`.
+  - `Not Started` = today, no report yet. `Off` = non-working day.
+}

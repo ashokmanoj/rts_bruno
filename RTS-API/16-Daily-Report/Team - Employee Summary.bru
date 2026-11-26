@@ -1,0 +1,99 @@
+meta {
+  name: Team - Employee Summary
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/daily-reports/team/members/{{summaryEmpId}}/summary?from={{summaryFrom}}&to={{today}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  from: {{summaryFrom}}
+  to: {{today}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:pre-request {
+  // Default range: last 30 days (IST). Change summaryFrom / to as needed (max 93 days).
+  const now = Date.now() + 330 * 60000;
+  bru.setVar("today", new Date(now).toISOString().slice(0, 10));
+  bru.setVar("summaryFrom", new Date(now - 29 * 86400000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const s = res.body.summary, e = res.body.employee;
+    console.log(`✅ ${e.name} (${e.empId}) · ${res.body.from} → ${res.body.to}`);
+    console.log(`   Compliance ${s.compliance ?? "-"}% · submitted ${s.submitted}/${s.workingDays} working days · missing ${s.missing}`);
+    console.log(`   Avg rating ${s.avgRating ?? "-"}/10 (best ${s.highestRating ?? "-"}, lowest ${s.lowestRating ?? "-"}) · ${s.totalTasks} tasks · blockers on ${s.blockerDays} day(s)`);
+    if (res.body.reports[0]) bru.setVar("dailyReportId", res.body.reports[0].id);
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+tests {
+  test("summary is returned", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.summary).to.have.property("compliance");
+    expect(res.body.days).to.be.an("array");
+  });
+}
+
+docs {
+  # Team - Employee Summary
+
+  One employee's daily reports and a summary over a date range — for the employee's
+  **HOD**, **SuperUser** or **Admin** (view only). Run **Team - Members** first to set
+  `{{summaryEmpId}}`, or type an Emp ID in the URL.
+
+  ## Path / query
+  | Param | Notes |
+  |---|---|
+  | `:empId` | The employee |
+  | `from` | `YYYY-MM-DD`, default 30 days ago |
+  | `to` | `YYYY-MM-DD`, default today (a future `to` is cut to today) |
+
+  Range: at most **93 days**.
+
+  ## Response
+  ```json
+  {
+    "employee": { "empId": "GC-1001", "name": "Esha Employee", "dept": "Software", "designation": "Developer", "role": "Requestor" },
+    "from": "2026-10-25", "to": "2026-11-23", "today": "2026-11-23",
+    "summary": {
+      "days": 30, "workingDays": 24, "submitted": 22, "missing": 2, "drafts": 0, "late": 0,
+      "compliance": 92,
+      "totalTasks": 61, "avgTasksPerDay": 2.8,
+      "ratedDays": 22, "avgRating": 7.4, "highestRating": 9, "lowestRating": 4,
+      "blockerDays": 3
+    },
+    "days": [
+      { "date": "2026-11-23", "dow": 1, "nonWorking": null, "status": "Submitted", "reportId": 42,
+        "mode": "half", "rating": 7, "entryCount": 2, "hasBlockers": true, "isLate": false,
+        "submittedAt": "2026-11-23T12:25:00.000Z" },
+      { "date": "2026-11-22", "dow": 0, "nonWorking": "Sunday", "status": "Off", "reportId": null }
+    ],
+    "reports": [ { "id": 42, "reportDate": "2026-11-23", "mode": "half", "status": "Submitted", "rating": 7, "blockers": "…", "entries": [ … ] } ]
+  }
+  ```
+
+  - `days` — every date in the range, newest first. `status`: `Submitted`, `Draft` (today,
+    not yet submitted), `Not Started` (today, nothing yet), `Missing` (working day without a
+    submitted report — an unsubmitted draft on a closed day counts as missing), `Off` (Sunday,
+    2nd / 4th Saturday, holiday).
+  - `compliance` — submitted ÷ working days, in %. Today is left out of the base until it is submitted.
+  - `reports` — the full reports (with tasks) in the range, newest first.
+
+  ## Errors
+  | Status | When |
+  |---|---|
+  | 403 | Not this employee's HOD (and not SuperUser / Admin), or asking for your own summary |
+  | 400 | Bad dates, `from` after `to`, `from` in the future, or more than 93 days |
+}

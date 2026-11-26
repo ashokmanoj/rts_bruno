@@ -1,0 +1,79 @@
+meta {
+  name: Save Draft (First Half)
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "mode": "half",
+    "entries": [
+      { "slot": "FIRST_HALF", "title": "Code review for the login module" },
+      { "slot": "FIRST_HALF", "title": "Stand-up meeting", "description": "Discussed sprint goals" }
+    ],
+    "blockers": "",
+    "rating": null,
+    "action": "save"
+  }
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const r = res.body.report;
+    bru.setVar("dailyReportId", r.id);
+    console.log(`✅ Saved ${r.status} #${r.id} · ${r.entries.length} task(s)`);
+    r.entries.forEach(e => console.log(`   [${e.id}] ${e.slot} · ${e.title}`));
+  } else {
+    console.log("❌", res.status, res.body.error);
+  }
+}
+
+docs {
+  # Save Draft (First Half)
+
+  Creates or updates **today's** report as a draft. Every report is written in two
+  parts — `FIRST_HALF` (before lunch) and `SECOND_HALF` (after lunch). The employee
+  usually saves the First Half before lunch and adds the Second Half later.
+
+  ## Body
+  | Field | Type | Notes |
+  |---|---|---|
+  | `mode` | `"half"` | Optional — defaults to `"half"`. `"full"` / `"hourly"` are retired and rejected (`400`). |
+  | `entries[]` | array | Max 40. Each: `{ id?, slot, title, description? }` |
+  | `entries[].slot` | `"FIRST_HALF"` \| `"SECOND_HALF"` | Required — otherwise `400 "Entry N: choose First Half or Second Half."` |
+  | `entries[].title` | string | Required, max 1000 chars (multi-line allowed) |
+  | `entries[].description` | string | Optional details, max 3000 chars |
+  | `entries[].id` | number | Send the existing id when editing a task (keeps its original "logged at" time) |
+  | `blockers` | string | Optional, max 2000 chars |
+  | `rating` | 0–10 \| null | **Today's Effectiveness** self-rating (0 = very low, 10 = excellent; `0` is a valid rating, `null` = not rated). **Optional** — also when submitting |
+  | `action` | `"save"` \| `"submit"` | Default `"save"` |
+
+  **Editing / deleting tasks:** the `entries` array replaces all tasks every time.
+  To edit a task, send it with its `id` and the new text; to delete a task, leave it
+  out of the array. Completely empty rows (no title, no description) are ignored —
+  the web page always shows one empty task box in each half, and it is never saved.
+
+  A draft with only the First Half is fine; the report **cannot be submitted** until
+  both halves have at least one task. The Today's Effectiveness rating is optional.
+
+  ## Rules
+  - Only today (IST) — until 11:59 PM. Past or future dates → `400`.
+  - A `Submitted` report must be withdrawn first (`409`) — today only.
+
+  ## Response
+  `{ "report": { ...same shape as Get My Report... } }`
+}

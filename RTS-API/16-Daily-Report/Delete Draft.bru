@@ -1,0 +1,41 @@
+meta {
+  name: Delete Draft
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/daily-reports/me/{{today}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:pre-request {
+  bru.setVar("today", new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 200) console.log("✅ Draft deleted");
+  else console.log("❌", res.status, res.body.error);
+}
+
+docs {
+  # Delete Draft
+
+  Deletes today's report while it is still a `Draft` (all tasks are removed).
+
+  To delete a single task instead, use **Save Draft** and leave that task out of `entries`.
+
+  ## Errors
+  | Status | When |
+  |---|---|
+  | 404 | No report for today |
+  | 409 | `Only draft reports can be deleted.` (withdraw a submitted report first) |
+
+  ## Response
+  `{ "success": true }`
+}
